@@ -1,0 +1,3688 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador Interactivo de Pórticos Planos 2D - Estilo SAP2000</title>
+    <style>
+/*
+ * styles.css - Estilos Profesionales Estilo SAP2000 / ETABS
+ * Analizador Interactivo de Pórticos Planos 2D
+ */
+
+:root {
+    --bg-main: #0b132b;
+    --bg-surface: #1c2541;
+    --bg-surface-elevated: #243054;
+    --bg-panel: #16203b;
+    --border-color: #324068;
+    --border-subtle: #243054;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --accent-blue: #38bdf8;
+    --accent-blue-hover: #0ea5e9;
+    --accent-cyan: #06b6d4;
+    --accent-green: #10b981;
+    --accent-orange: #f97316;
+    --accent-red: #ef4444;
+    --accent-purple: #8b5cf6;
+    --accent-yellow: #f59e0b;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+[data-theme="light"] {
+    --bg-main: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-surface-elevated: #f1f5f9;
+    --bg-panel: #f8fafc;
+    --border-color: #cbd5e1;
+    --border-subtle: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --accent-blue: #0284c7;
+    --accent-blue-hover: #0369a1;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+}
+
+/* ==========================================
+   BARRA SUPERIOR (HEADER Y HERRAMIENTAS CAD)
+   ========================================== */
+.top-nav {
+    height: 48px;
+    background-color: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 20;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.brand-icon {
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.brand-version {
+    font-size: 10px;
+    background: var(--bg-surface-elevated);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    color: var(--accent-blue);
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.cad-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background-color: var(--bg-surface);
+    padding: 3px 6px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.tool-separator {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border-color);
+    margin: 0 4px;
+}
+
+.btn-tool {
+    height: 30px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.btn-tool:hover {
+    background-color: var(--bg-surface-elevated);
+    color: var(--text-primary);
+}
+
+.btn-tool.active {
+    background-color: var(--accent-blue);
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.btn-solve {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.btn-solve:hover {
+    background: linear-gradient(135deg, #059669, #047857);
+}
+
+.top-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ==========================================
+   ÁREA DE TRABAJO PRINCIPAL (CANVAS Y PANELES)
+   ========================================== */
+.workspace-container {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Panel Lateral Izquierdo (Inspector / Propiedades) */
+.sidebar-left {
+    width: 280px;
+    background-color: var(--bg-panel);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    transition: width 0.2s ease;
+}
+
+.sidebar-header {
+    height: 36px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+.sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.prop-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px;
+}
+
+.prop-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.prop-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.prop-row:last-child {
+    border-bottom: none;
+}
+
+.prop-label {
+    color: var(--text-secondary);
+}
+
+.prop-val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Lienzo Central CAD */
+.canvas-wrapper {
+    flex: 1;
+    position: relative;
+    background-color: #111827;
+    overflow: hidden;
+}
+
+#main-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Barra Flotante de Modos de Visualización */
+.view-floating-bar {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(22, 32, 59, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: var(--shadow-lg);
+    z-index: 15;
+}
+
+.view-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.view-btn:hover {
+    color: var(--text-primary);
+}
+
+.view-btn.active {
+    background-color: var(--accent-blue);
+    color: #ffffff;
+}
+
+/* Controles de Zoom Flotantes */
+.canvas-controls-floating {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 15;
+}
+
+.btn-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: background-color 0.15s;
+}
+
+.btn-circle:hover {
+    background-color: var(--bg-surface-elevated);
+    border-color: var(--accent-blue);
+}
+
+/* Panel Lateral Derecho (Resumen y Equilibrio) */
+.sidebar-right {
+    width: 320px;
+    background-color: var(--bg-panel);
+    border-left: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.equilibrium-box {
+    padding: 12px;
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    margin-bottom: 12px;
+}
+
+.equilibrium-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.badge-status {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.badge-ok {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: var(--accent-green);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.badge-error {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: var(--accent-red);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Tablas Compactas de Resultados */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.results-table th {
+    background: var(--bg-surface-elevated);
+    padding: 6px 8px;
+    text-align: left;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+}
+
+.results-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-subtle);
+    font-family: var(--font-mono);
+}
+
+/* ==========================================
+   BARRA INFERIOR DE ESTADO
+   ========================================== */
+.status-bar {
+    height: 26px;
+    background-color: var(--bg-panel);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    z-index: 20;
+}
+
+.status-left, .status-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* ==========================================
+   VENTANAS MODALES
+   ========================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-card {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    max-width: 600px;
+    width: 90%;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.modal-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bg-panel);
+}
+
+.modal-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.modal-close-btn:hover {
+    color: var(--text-primary);
+}
+
+.modal-body {
+    padding: 18px 20px;
+    overflow-y: auto;
+    font-size: 12px;
+}
+
+.modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-panel);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Formularios en Modales */
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.form-input, .form-select {
+    width: 100%;
+    height: 32px;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 0 10px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+}
+
+.form-input:focus, .form-select:focus {
+    border-color: var(--accent-blue);
+}
+
+.form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.form-row-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    color: var(--text-primary);
+}
+
+/* Botones */
+.btn {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.btn-primary {
+    background-color: var(--accent-blue);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-blue-hover);
+}
+
+.btn-secondary {
+    background-color: var(--bg-surface-elevated);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--border-color);
+}
+
+.btn-danger {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: var(--accent-red);
+}
+
+.btn-danger:hover {
+    background-color: var(--accent-red);
+    color: #ffffff;
+}
+
+.btn-xs {
+    height: 22px;
+    padding: 0 6px;
+    font-size: 10px;
+}
+
+/* ==========================================
+   MODAL ESPECÍFICO DEL VISUALIZADOR DE MATRICES
+   ========================================== */
+.modal-matrix {
+    max-width: 95vw;
+    width: 95vw;
+    height: 90vh;
+}
+
+.matrix-tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 1px solid var(--border-color);
+    padding: 8px 20px 0 20px;
+    background-color: var(--bg-panel);
+}
+
+.matrix-tab-btn {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.matrix-tab-btn.active {
+    color: var(--accent-blue);
+    border-bottom-color: var(--accent-blue);
+}
+
+.matrix-container {
+    flex: 1;
+    overflow: auto;
+    padding: 16px;
+    background-color: var(--bg-main);
+}
+
+.matrix-table {
+    border-collapse: collapse;
+    font-family: var(--font-mono);
+    font-size: 11px;
+}
+
+.matrix-table th, .matrix-table td {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.matrix-table th {
+    background-color: var(--bg-surface-elevated);
+    color: var(--accent-cyan);
+    font-weight: 700;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.matrix-table th:first-child {
+    left: 0;
+    z-index: 3;
+}
+
+.matrix-table td:first-child {
+    position: sticky;
+    left: 0;
+    background-color: var(--bg-surface-elevated);
+    font-weight: bold;
+}
+
+.matrix-diag {
+    background-color: rgba(56, 189, 248, 0.15);
+    color: var(--accent-blue);
+    font-weight: bold;
+}
+
+.matrix-zero {
+    color: var(--text-muted);
+}
+
+.matrix-val {
+    color: var(--text-primary);
+}
+
+.table-input {
+    width: 70px;
+    height: 24px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    text-align: center;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-family: var(--font-mono);
+}
+
+</style>
+    <!-- Fuentes modernas para ingeniería -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="dark">
+
+    <!-- ==========================================
+         BARRA SUPERIOR (HEADER Y BARRA DE HERRAMIENTAS CAD)
+         ========================================== -->
+    <header class="top-nav">
+        <div class="brand">
+            <div class="brand-icon">2D</div>
+            <span>PORTICOS 2D</span>
+            <span class="brand-version">SAP PRO</span>
+        </div>
+
+        <div class="cad-toolbar">
+            <!-- Grupo de Dibujo y Selección -->
+            <div class="tool-group">
+                <button class="btn-tool active" data-tool="select" title="Seleccionar elementos (Clic o Ventana)">
+                    <span>↖</span> Selección
+                </button>
+                <button class="btn-tool" data-tool="node" title="Crear Nudo en el lienzo">
+                    <span>●</span> Nudo
+                </button>
+                <button class="btn-tool" data-tool="member" title="Dibujar Barra uniendo dos nudos">
+                    <span>／</span> Barra
+                </button>
+            </div>
+
+            <div class="tool-separator"></div>
+
+            <!-- Grupo de Asignaciones (Apoyos, Cargas, Materiales) -->
+            <div class="tool-group">
+                <button class="btn-tool" data-tool="support" title="Asignar Apoyo o Resortes Elásticos al nudo">
+                    <span>▲</span> Apoyos
+                </button>
+                <button class="btn-tool" id="btn-open-load-dialog" title="Asignar Carga Puntual o Distribuida">
+                    <span>↓</span> Cargas
+                </button>
+                <button class="btn-tool" data-tool="materials" title="Biblioteca de Materiales (E, ν, G, Fy)">
+                    <span>▥</span> Materiales
+                </button>
+                <button class="btn-tool" data-tool="properties" title="Propiedades de Barra (Sección, Rótulas)">
+                    <span>⚙</span> Secciones
+                </button>
+            </div>
+
+            <div class="tool-separator"></div>
+
+            <!-- Grupo de Motor de Cálculo y Matrices -->
+            <div class="tool-group">
+                <button class="btn-tool btn-solve" id="btn-solve" title="Calcular por Método de Rigidez Directa">
+                    <span>▶</span> Calcular
+                </button>
+                <button class="btn-tool" id="btn-matrix-viewer" title="Inspeccionar Matriz Global, Reducida y Vectores">
+                    <span>▦</span> Matrices
+                </button>
+                <button class="btn-tool" id="btn-export-pdf" title="Generar Informe Técnico en PDF (Ctrl+P)">
+                    <span>📄</span> Reporte PDF
+                </button>
+            </div>
+
+            <div class="tool-separator"></div>
+
+            <!-- Grupo de Historial y Edición -->
+            <div class="tool-group">
+                <button class="btn-tool" id="btn-new-project" title="Nuevo Proyecto / Limpiar Lienzo (Ctrl+N)">
+                    <span>✕</span> Limpiar
+                </button>
+            </div>
+        </div>
+
+        <div class="top-actions">
+            <!-- Selector de Ejemplos -->
+            <select class="form-select" id="select-example" style="width: 170px; height: 30px; font-size: 11px;">
+                <option value="">📂 Cargar Ejemplo...</option>
+                <option value="continuous_beam">Viga Continua (3 tramos)</option>
+                <option value="simple_frame">Pórtico Simple (Viento)</option>
+                <option value="gable_frame">Pórtico a Dos Aguas</option>
+                <option value="multi_story">Pórtico 2 Pisos + Resortes</option>
+            </select>
+
+            <!-- Toggle de Tema -->
+            <button class="btn btn-secondary btn-xs" id="btn-toggle-theme" title="Alternar Modo Oscuro / Claro">
+                🌙 Modo Oscuro
+            </button>
+        </div>
+    </header>
+
+    <!-- ==========================================
+         ESPACIO DE TRABAJO (CANVAS Y PANELES)
+         ========================================== -->
+    <main class="workspace-container">
+
+        <!-- Panel Lateral Izquierdo: Inspector y Propiedades -->
+        <aside class="sidebar-left">
+            <div class="sidebar-header">
+                <span>Inspector del Modelo</span>
+            </div>
+            <div class="sidebar-content">
+                <!-- Resumen Global -->
+                <div class="prop-card">
+                    <div class="prop-title">Resumen Estructural</div>
+                    <div id="sidebar-model-stats">
+                        <!-- Poblado dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Elemento Seleccionado -->
+                <div class="prop-card">
+                    <div class="prop-title">
+                        <span>Elemento Activo</span>
+                        <button class="btn btn-xs btn-primary" id="btn-sidebar-props">Editar</button>
+                    </div>
+                    <div id="sidebar-selection-info">
+                        <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 0;">
+                            Seleccione un nudo o barra en el lienzo.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ayuda Rápida Hotkeys -->
+                <div class="prop-card" style="margin-top: auto;">
+                    <div class="prop-title">Atajos CAD</div>
+                    <div class="prop-row"><span class="prop-label">Ctrl + Z:</span><span class="prop-val">Deshacer</span></div>
+                    <div class="prop-row"><span class="prop-label">Ctrl + Y:</span><span class="prop-val">Rehacer</span></div>
+                    <div class="prop-row"><span class="prop-label">Ctrl + C / V:</span><span class="prop-val">Copiar / Pegar</span></div>
+                    <div class="prop-row"><span class="prop-label">Ctrl + X:</span><span class="prop-val">Cortar</span></div>
+                    <div class="prop-row"><span class="prop-label">Ctrl + P:</span><span class="prop-val">Exportar PDF</span></div>
+                    <div class="prop-row"><span class="prop-label">Supr:</span><span class="prop-val">Eliminar</span></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Contenedor del Lienzo Gráfico Interactivo -->
+        <div class="canvas-wrapper">
+            <!-- Barra Superior Flotante de Modos de Vista -->
+            <div class="view-floating-bar">
+                <button class="view-btn active" data-view="model">Geometría</button>
+                <button class="view-btn" data-view="deformed">Deformada</button>
+                <button class="view-btn" data-view="axial">Axiales (N)</button>
+                <button class="view-btn" data-view="shear">Cortantes (V)</button>
+                <button class="view-btn" data-view="moment">Flectores (M)</button>
+            </div>
+
+            <!-- Canvas HTML5 de Alta Resolución -->
+            <canvas id="main-canvas"></canvas>
+
+            <!-- Controles Flotantes de Zoom / Ajuste -->
+            <div class="canvas-controls-floating">
+                <button class="btn-circle" id="btn-zoom-in" title="Acercar (Zoom In)">+</button>
+                <button class="btn-circle" id="btn-zoom-out" title="Alejar (Zoom Out)">−</button>
+                <button class="btn-circle" id="btn-zoom-fit" title="Ajustar a la Pantalla">⛶</button>
+            </div>
+        </div>
+
+        <!-- Panel Lateral Derecho: Resultados y Equilibrio -->
+        <aside class="sidebar-right">
+            <div class="sidebar-header">
+                <span>Resultados del Análisis</span>
+            </div>
+            <div class="sidebar-content">
+                <!-- Comprobación de Equilibrio Global -->
+                <div class="equilibrium-box">
+                    <div class="equilibrium-header">
+                        <span>Equilibrio Estático</span>
+                        <span id="equilibrium-badge" class="badge-status">Sin calcular</span>
+                    </div>
+                    <div id="equilibrium-details">
+                        <!-- Poblado dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Reacciones en los Apoyos -->
+                <div class="prop-card">
+                    <div class="prop-title">Reacciones en Apoyos</div>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Nudo</th>
+                                <th>Rx (kN)</th>
+                                <th>Ry (kN)</th>
+                                <th>Rm (kNm)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reactions-table-body">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sin datos</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Desplazamientos Nodales -->
+                <div class="prop-card" style="flex: 1; overflow-y: auto;">
+                    <div class="prop-title">Desplazamientos Nodales</div>
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Nudo</th>
+                                <th>u (mm)</th>
+                                <th>v (mm)</th>
+                                <th>θ (mrad)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="displacements-table-body">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sin datos</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- ==========================================
+         BARRA INFERIOR DE ESTADO
+         ========================================== -->
+    <footer class="status-bar">
+        <div class="status-left">
+            <span id="status-coords">X: 0.00 m, Y: 0.00 m</span>
+            <span>•</span>
+            <span id="status-mode">Modo: Puntero y Selección CAD</span>
+        </div>
+        <div class="status-right">
+            <span>Método de Rigidez Directa 2D</span>
+            <span>•</span>
+            <span>Sistema Internacional (kN, m, MPa)</span>
+        </div>
+    </footer>
+
+    <!-- ==========================================
+         VENTANAS MODALES INTERACTIVAS
+         ========================================== -->
+
+    <!-- Modal 1: Biblioteca de Materiales -->
+    <div class="modal-overlay" id="modal-materials">
+        <div class="modal-card" style="max-width: 700px;">
+            <div class="modal-header">
+                <span class="modal-title">Biblioteca y Editor de Materiales</span>
+                <button class="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <table class="results-table" style="margin-bottom: 12px;">
+                    <thead>
+                        <tr>
+                            <th>Material</th>
+                            <th>Módulo E (GPa)</th>
+                            <th>Poisson (ν)</th>
+                            <th>Módulo G (GPa)</th>
+                            <th>Límite Fy (MPa)</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="materials-table-body">
+                        <!-- Poblado dinámicamente -->
+                    </tbody>
+                </table>
+                <button class="btn btn-secondary btn-xs" id="btn-add-custom-material">+ Añadir Material Personalizado</button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary modal-close-btn">Listo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Apoyos y Resortes -->
+    <div class="modal-overlay" id="modal-support">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <span class="modal-title" id="support-modal-title">Asignar Apoyos y Resortes</span>
+                <button class="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Tipo de Apoyo Predeterminado</label>
+                    <select class="form-select" id="support-type-select">
+                        <option value="free">Libre (Sin restricción)</option>
+                        <option value="fixed">Empotramiento Fijo (Fx, Fy, M restringidos)</option>
+                        <option value="pinned">Articulado Fijo (Fx, Fy restringidos)</option>
+                        <option value="roller">Apoyo Móvil / Rodillo (Fy restringido)</option>
+                        <option value="roller_x">Apoyo Móvil Vertical (Fx restringido)</option>
+                        <option value="custom">Restricción Personalizada...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Restricciones Directas (Grados de Libertad)</label>
+                    <div style="display: flex; gap: 14px; margin-top: 6px;">
+                        <label class="checkbox-label"><input type="checkbox" id="chk-rx"> Restringir X (u=0)</label>
+                        <label class="checkbox-label"><input type="checkbox" id="chk-ry"> Restringir Y (v=0)</label>
+                        <label class="checkbox-label"><input type="checkbox" id="chk-rm"> Restringir Rotación (θ=0)</label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 14px; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                    <label class="form-label">Resortes Elásticos Nodales</label>
+                    <div class="form-row-3">
+                        <div>
+                            <span style="font-size: 10px; color: var(--text-muted);">kx (kN/m)</span>
+                            <input type="number" class="form-input" id="spring-kx" value="0">
+                        </div>
+                        <div>
+                            <span style="font-size: 10px; color: var(--text-muted);">ky (kN/m)</span>
+                            <input type="number" class="form-input" id="spring-ky" value="0">
+                        </div>
+                        <div>
+                            <span style="font-size: 10px; color: var(--text-muted);">kθ (kN·m/rad)</span>
+                            <input type="number" class="form-input" id="spring-km" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">Cancelar</button>
+                <button class="btn btn-primary" id="btn-save-support">Aplicar Apoyo</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Cargas Puntuales en Nodos -->
+    <div class="modal-overlay" id="modal-node-load">
+        <div class="modal-card" style="max-width: 400px;">
+            <div class="modal-header">
+                <span class="modal-title" id="node-load-modal-title">Cargas Puntuales en Nudo</span>
+                <button class="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Fuerza Horizontal Fx (kN)</label>
+                    <input type="number" class="form-input" id="load-fx" value="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Fuerza Vertical Fy (kN) [Hacia abajo negativo]</label>
+                    <input type="number" class="form-input" id="load-fy" value="0" step="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Momento Puntual M (kN·m) [Antihorario positivo]</label>
+                    <input type="number" class="form-input" id="load-m" value="0" step="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">Cancelar</button>
+                <button class="btn btn-primary" id="btn-save-node-load">Aplicar Carga</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 4: Cargas Distribuidas en Barras -->
+    <div class="modal-overlay" id="modal-member-load">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <span class="modal-title" id="member-load-modal-title">Carga Distribuida en Barra</span>
+                <button class="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">q1 Inicial (kN/m)</label>
+                        <input type="number" class="form-input" id="load-q1" value="20" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">q2 Final (kN/m)</label>
+                        <input type="number" class="form-input" id="load-q2" value="20" step="1">
+                    </div>
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-group">
+                        <label class="form-label">Sistema de Coordenadas</label>
+                        <select class="form-select" id="load-coord-system">
+                            <option value="global">Global (Gravitatoria / Viento)</option>
+                            <option value="local">Local (Perpendicular a Barra)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dirección</label>
+                        <select class="form-select" id="load-direction">
+                            <option value="Y">Eje Y (Gravitatoria)</option>
+                            <option value="X">Eje X (Lateral / Viento)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="load-enabled" checked> Carga habilitada y activa en el cálculo
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">Cancelar</button>
+                <button class="btn btn-primary" id="btn-save-member-load">Aplicar Carga</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 5: Propiedades de Barra (Sección, Material, Rótulas) -->
+    <div class="modal-overlay" id="modal-member-props">
+        <div class="modal-card" style="max-width: 450px;">
+            <div class="modal-header">
+                <span class="modal-title">Propiedades de la Barra</span>
+                <button class="modal-close-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Material Asignado</label>
+                    <select class="form-select" id="member-mat-select">
+                        <!-- Poblado dinámicamente -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sección Transversal</label>
+                    <select class="form-select" id="member-sec-select">
+                        <!-- Poblado dinámicamente -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Conexiones y Rótulas Internas (Releases de Momento)</label>
+                    <select class="form-select" id="member-release-select">
+                        <option value="none">Rígida - Rígida (Continua)</option>
+                        <option value="start">Rótula en Extremo Inicial (M1 = 0)</option>
+                        <option value="end">Rótula en Extremo Final (M2 = 0)</option>
+                        <option value="both">Bi-articulada (Truss / Armadura Pura)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary modal-close-btn">Cancelar</button>
+                <button class="btn btn-primary" id="btn-save-member-props">Guardar Propiedades</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 6: Inspector Matricial Completo -->
+    <div class="modal-overlay" id="modal-matrix-viewer">
+        <div class="modal-card modal-matrix">
+            <div class="modal-header">
+                <span class="modal-title">Inspector Matricial del Método de Rigidez Directa</span>
+                <button class="modal-close-btn">✕</button>
+            </div>
+            <div class="matrix-tabs">
+                <button class="matrix-tab-btn active" data-tab="k_global">Matriz de Rigidez Global [K_global]</button>
+                <button class="matrix-tab-btn" data-tab="k_reducida">Matriz Reducida [K_reducida]</button>
+                <button class="matrix-tab-btn" data-tab="vector_p">Vector de Cargas {P}</button>
+                <button class="matrix-tab-btn" data-tab="vector_d">Vector de Desplazamientos {d}</button>
+            </div>
+            <div class="sidebar-header" style="background: var(--bg-surface); padding: 6px 20px; font-size: 11px; text-transform: none;">
+                <span id="matrix-info-bar" style="color: var(--accent-blue);"></span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary btn-xs" id="btn-copy-matrix">📋 Copiar a Portapapeles</button>
+                    <button class="btn btn-secondary btn-xs" id="btn-export-csv">💾 Exportar a CSV</button>
+                </div>
+            </div>
+            <div class="matrix-container" id="matrix-content-area">
+                <!-- Poblado dinámicamente con la cuadrícula matricial -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary modal-close-btn">Cerrar Inspector</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de la Aplicación (Autocontenido universal compatible con file:/// y Web) -->
+    <script>
+/**
+ * bundle.js - Analizador Interactivo de Pórticos Planos 2D
+ * Versión empaquetada autocontenida (compatible con file:/// y servidores web sin CORS)
+ */
+
+// ============================================================================
+// 1. ÁLGEBRA MATRICIAL (Matrix)
+// ============================================================================
+class Matrix {
+    static zeros(rows, cols) {
+        const mat = new Array(rows);
+        for (let i = 0; i < rows; i++) {
+            mat[i] = new Float64Array(cols);
+        }
+        return mat;
+    }
+
+    static clone(mat) {
+        const rows = mat.length;
+        const cols = mat[0].length;
+        const copy = new Array(rows);
+        for (let i = 0; i < rows; i++) {
+            copy[i] = new Float64Array(cols);
+            for (let j = 0; j < cols; j++) {
+                copy[i][j] = mat[i][j];
+            }
+        }
+        return copy;
+    }
+
+    static multiply(A, B) {
+        const rA = A.length;
+        const cA = A[0].length;
+        const rB = B.length;
+        const cB = B[0].length;
+        if (cA !== rB) throw new Error(`Dimensiones incompatibles: (${rA}x${cA}) * (${rB}x${cB})`);
+        const C = Matrix.zeros(rA, cB);
+        for (let i = 0; i < rA; i++) {
+            for (let k = 0; k < cA; k++) {
+                const aik = A[i][k];
+                if (Math.abs(aik) < 1e-15) continue;
+                for (let j = 0; j < cB; j++) {
+                    C[i][j] += aik * B[k][j];
+                }
+            }
+        }
+        return C;
+    }
+
+    static multiplyVector(A, x) {
+        const rows = A.length;
+        const cols = A[0].length;
+        if (cols !== x.length) throw new Error(`Dimensiones incompatibles: Matriz ${rows}x${cols}, Vector ${x.length}`);
+        const y = new Float64Array(rows);
+        for (let i = 0; i < rows; i++) {
+            let sum = 0;
+            for (let j = 0; j < cols; j++) {
+                sum += A[i][j] * x[j];
+            }
+            y[i] = sum;
+        }
+        return y;
+    }
+
+    static transpose(A) {
+        const rows = A.length;
+        const cols = A[0].length;
+        const AT = Matrix.zeros(cols, rows);
+        for (let i = 0; i < rows; i++) {
+            for (let j = 0; j < cols; j++) {
+                AT[j][i] = A[i][j];
+            }
+        }
+        return AT;
+    }
+
+    static solve(A, b) {
+        const n = A.length;
+        if (n === 0) return new Float64Array(0);
+        if (A[0].length !== n || b.length !== n) {
+            throw new Error(`El sistema no es cuadrado o no coincide: ${n}x${A[0]?.length}, b:${b.length}`);
+        }
+        const M = new Array(n);
+        for (let i = 0; i < n; i++) {
+            M[i] = new Float64Array(n + 1);
+            for (let j = 0; j < n; j++) M[i][j] = A[i][j];
+            M[i][n] = b[i];
+        }
+
+        for (let k = 0; k < n; k++) {
+            let maxRow = k;
+            let maxVal = Math.abs(M[k][k]);
+            for (let i = k + 1; i < n; i++) {
+                const absVal = Math.abs(M[i][k]);
+                if (absVal > maxVal) {
+                    maxVal = absVal;
+                    maxRow = i;
+                }
+            }
+            if (maxVal < 1e-12) {
+                throw new Error(`Matriz singular o estructura inestable en GDL ${k}. Verifique apoyos.`);
+            }
+            if (maxRow !== k) {
+                const temp = M[k];
+                M[k] = M[maxRow];
+                M[maxRow] = temp;
+            }
+            const pivot = M[k][k];
+            for (let i = k + 1; i < n; i++) {
+                const factor = M[i][k] / pivot;
+                if (Math.abs(factor) < 1e-15) continue;
+                M[i][k] = 0;
+                for (let j = k + 1; j <= n; j++) {
+                    M[i][j] -= factor * M[k][j];
+                }
+            }
+        }
+
+        const x = new Float64Array(n);
+        for (let i = n - 1; i >= 0; i--) {
+            let sum = M[i][n];
+            for (let j = i + 1; j < n; j++) {
+                sum -= M[i][j] * x[j];
+            }
+            x[i] = sum / M[i][i];
+            if (isNaN(x[i])) throw new Error(`Inestabilidad numérica en la resolución del GDL ${i}.`);
+        }
+        return x;
+    }
+
+    static submatrix(A, rowIndices, colIndices) {
+        const nr = rowIndices.length;
+        const nc = colIndices.length;
+        const sub = Matrix.zeros(nr, nc);
+        for (let i = 0; i < nr; i++) {
+            const r = rowIndices[i];
+            for (let j = 0; j < nc; j++) {
+                sub[i][j] = A[r][colIndices[j]];
+            }
+        }
+        return sub;
+    }
+}
+
+// ============================================================================
+// 2. MOTOR DE RIGIDEZ DIRECTA (StructuralSolver)
+// ============================================================================
+class StructuralSolver {
+    static solve(model) {
+        const { nodes, members, materials, sections } = model;
+        if (!nodes || nodes.length < 2) throw new Error('El modelo debe contener al menos 2 nodos.');
+        if (!members || members.length === 0) throw new Error('El modelo debe contener al menos una barra.');
+
+        const numNodes = nodes.length;
+        const totalDof = numNodes * 3;
+        const nodeIndexMap = new Map();
+        nodes.forEach((node, idx) => nodeIndexMap.set(node.id, idx));
+
+        const K_global = Matrix.zeros(totalDof, totalDof);
+        const P_ext = new Float64Array(totalDof);
+        const P_eq = new Float64Array(totalDof);
+
+        nodes.forEach((node) => {
+            const idx = nodeIndexMap.get(node.id);
+            const dofX = idx * 3;
+            const dofY = idx * 3 + 1;
+            const dofM = idx * 3 + 2;
+
+            if (node.load) {
+                P_ext[dofX] += (node.load.fx || 0);
+                P_ext[dofY] += (node.load.fy || 0);
+                P_ext[dofM] += (node.load.m || 0);
+            }
+            if (node.spring) {
+                if (node.spring.kx) K_global[dofX][dofX] += node.spring.kx;
+                if (node.spring.ky) K_global[dofY][dofY] += node.spring.ky;
+                if (node.spring.km) K_global[dofM][dofM] += node.spring.km;
+            }
+        });
+
+        const memberCalculations = [];
+
+        members.forEach((member) => {
+            const idx1 = nodeIndexMap.get(member.node1Id);
+            const idx2 = nodeIndexMap.get(member.node2Id);
+            if (idx1 === undefined || idx2 === undefined) {
+                throw new Error(`La barra ${member.id} referencia nodos inexistentes.`);
+            }
+
+            const n1 = nodes[idx1];
+            const n2 = nodes[idx2];
+            const dx = n2.x - n1.x;
+            const dy = n2.y - n1.y;
+            const L = Math.hypot(dx, dy);
+
+            if (L < 1e-6) throw new Error(`La barra ${member.id} tiene longitud prácticamente nula.`);
+
+            const c = dx / L;
+            const s = dy / L;
+
+            const mat = materials.find(m => m.id === member.materialId) || materials[0];
+            const sec = sections.find(s => s.id === member.sectionId) || sections[0];
+
+            const E = (mat.E || 200) * 1e6; // GPa a kN/m²
+            const A = sec.A || 0.01;
+            const I = sec.I || 0.0001;
+            const releases = member.releases || 'none';
+
+            const k_local = StructuralSolver.computeLocalStiffness(E, A, I, L, releases);
+            const T = StructuralSolver.computeTransformationMatrix(c, s);
+            const TT = Matrix.transpose(T);
+            const TT_k = Matrix.multiply(TT, k_local);
+            const K_elem_global = Matrix.multiply(TT_k, T);
+
+            const dofs = [
+                idx1 * 3, idx1 * 3 + 1, idx1 * 3 + 2,
+                idx2 * 3, idx2 * 3 + 1, idx2 * 3 + 2
+            ];
+
+            for (let i = 0; i < 6; i++) {
+                const gi = dofs[i];
+                for (let j = 0; j < 6; j++) {
+                    K_global[gi][dofs[j]] += K_elem_global[i][j];
+                }
+            }
+
+            const f0_local = StructuralSolver.computeFixedEndActions(member, L, releases, c, s);
+            const P_eq_elem = Matrix.multiplyVector(TT, f0_local);
+
+            for (let i = 0; i < 6; i++) {
+                P_eq[dofs[i]] += P_eq_elem[i];
+            }
+
+            memberCalculations.push({
+                member, L, c, s, E, A, I, mat, sec, releases, dofs, k_local, T, TT, f0_local
+            });
+        });
+
+        const isRestrained = new Uint8Array(totalDof);
+        nodes.forEach((node) => {
+            const idx = nodeIndexMap.get(node.id);
+            const dofX = idx * 3;
+            const dofY = idx * 3 + 1;
+            const dofM = idx * 3 + 2;
+
+            if (node.support) {
+                if (node.support.type === 'fixed') {
+                    isRestrained[dofX] = 1; isRestrained[dofY] = 1; isRestrained[dofM] = 1;
+                } else if (node.support.type === 'pinned') {
+                    isRestrained[dofX] = 1; isRestrained[dofY] = 1;
+                } else if (node.support.type === 'roller') {
+                    isRestrained[dofY] = 1;
+                } else if (node.support.type === 'roller_x') {
+                    isRestrained[dofX] = 1;
+                } else if (node.support.type === 'custom') {
+                    if (node.support.rx) isRestrained[dofX] = 1;
+                    if (node.support.ry) isRestrained[dofY] = 1;
+                    if (node.support.rm) isRestrained[dofM] = 1;
+                }
+            }
+        });
+
+        const freeDofs = [];
+        const restrainedDofs = [];
+        for (let i = 0; i < totalDof; i++) {
+            if (isRestrained[i]) restrainedDofs.push(i);
+            else freeDofs.push(i);
+        }
+
+        if (freeDofs.length === 0) {
+            throw new Error('Todos los grados de libertad están restringidos.');
+        }
+
+        const numFree = freeDofs.length;
+        const K_ff = Matrix.submatrix(K_global, freeDofs, freeDofs);
+        const P_eff_f = new Float64Array(numFree);
+        for (let i = 0; i < numFree; i++) {
+            const fd = freeDofs[i];
+            P_eff_f[i] = P_ext[fd] - P_eq[fd];
+        }
+
+        const d_f = Matrix.solve(K_ff, P_eff_f);
+
+        const d_global = new Float64Array(totalDof);
+        for (let i = 0; i < numFree; i++) {
+            d_global[freeDofs[i]] = d_f[i];
+        }
+
+        const reactionsVector = new Float64Array(totalDof);
+        if (restrainedDofs.length > 0) {
+            const K_sf = Matrix.submatrix(K_global, restrainedDofs, freeDofs);
+            const Ksf_df = Matrix.multiplyVector(K_sf, d_f);
+            for (let i = 0; i < restrainedDofs.length; i++) {
+                const rd = restrainedDofs[i];
+                reactionsVector[rd] = Ksf_df[i] + P_eq[rd] - P_ext[rd];
+            }
+        }
+
+        const reactionsByNode = {};
+        nodes.forEach((node) => {
+            const idx = nodeIndexMap.get(node.id);
+            const rx = reactionsVector[idx * 3];
+            const ry = reactionsVector[idx * 3 + 1];
+            const rm = reactionsVector[idx * 3 + 2];
+            reactionsByNode[node.id] = {
+                rx: Math.abs(rx) < 1e-6 ? 0 : rx,
+                ry: Math.abs(ry) < 1e-6 ? 0 : ry,
+                rm: Math.abs(rm) < 1e-6 ? 0 : rm,
+                isSupported: isRestrained[idx * 3] || isRestrained[idx * 3 + 1] || isRestrained[idx * 3 + 2]
+            };
+        });
+
+        const displacementsByNode = {};
+        nodes.forEach((node) => {
+            const idx = nodeIndexMap.get(node.id);
+            const ux = d_global[idx * 3];
+            const uy = d_global[idx * 3 + 1];
+            const theta = d_global[idx * 3 + 2];
+            displacementsByNode[node.id] = {
+                ux: Math.abs(ux) < 1e-12 ? 0 : ux,
+                uy: Math.abs(uy) < 1e-12 ? 0 : uy,
+                theta: Math.abs(theta) < 1e-12 ? 0 : theta,
+                ux_mm: ux * 1000,
+                uy_mm: uy * 1000,
+                theta_mrad: theta * 1000
+            };
+        });
+
+        const memberResults = {};
+        memberCalculations.forEach((mc) => {
+            const { member, L, dofs, k_local, T, f0_local, A, I, mat, sec } = mc;
+            const d_elem_global = new Float64Array(6);
+            for (let i = 0; i < 6; i++) d_elem_global[i] = d_global[dofs[i]];
+            const d_elem_local = Matrix.multiplyVector(T, d_elem_global);
+            const k_d = Matrix.multiplyVector(k_local, d_elem_local);
+            const f_local = new Float64Array(6);
+            for (let i = 0; i < 6; i++) f_local[i] = k_d[i] + f0_local[i];
+
+            const N1 = -f_local[0];
+            const V1 = f_local[1];
+            const M1 = -f_local[2];
+            const N2 = f_local[3];
+            const V2 = -f_local[4];
+            const M2 = f_local[5];
+
+            const h = sec.h || (Math.sqrt((12 * I) / A) || 0.3);
+            const c_dist = h / 2;
+            const maxM = Math.max(Math.abs(M1), Math.abs(M2));
+            const maxN = Math.max(Math.abs(N1), Math.abs(N2));
+
+            const sigma_a = (maxN / A) / 1000;
+            const sigma_b = ((maxM * c_dist) / I) / 1000;
+            const sigma_total = sigma_a + sigma_b;
+            const Fy = mat.Fy || 250;
+            const ratio = Fy > 0 ? sigma_total / Fy : 0;
+
+            memberResults[member.id] = {
+                memberId: member.id,
+                L,
+                endForces: { N1, V1, M1, N2, V2, M2, f_local_raw: Array.from(f_local) },
+                stresses: { sigma_a, sigma_b, sigma_total, Fy, ratio, isCritical: ratio > 1.0 },
+                d_elem_local: Array.from(d_elem_local),
+                f0_local: Array.from(f0_local)
+            };
+        });
+
+        // Verificación de Equilibrio
+        let sumFx_ext = 0, sumFy_ext = 0, sumM_ext_O = 0;
+        nodes.forEach((n) => {
+            if (n.load) {
+                const fx = n.load.fx || 0;
+                const fy = n.load.fy || 0;
+                const m = n.load.m || 0;
+                sumFx_ext += fx;
+                sumFy_ext += fy;
+                sumM_ext_O += m + (n.x * fy - n.y * fx);
+            }
+        });
+
+        members.forEach((m) => {
+            if (m.load && m.load.enabled !== false) {
+                const n1 = nodes[nodeIndexMap.get(m.node1Id)];
+                const n2 = nodes[nodeIndexMap.get(m.node2Id)];
+                const dx = n2.x - n1.x;
+                const dy = n2.y - n1.y;
+                const L = Math.hypot(dx, dy);
+                const c = dx / L;
+                const s = dy / L;
+                const q1 = m.load.q1 || 0;
+                const q2 = m.load.q2 !== undefined ? m.load.q2 : q1;
+                const q_total = (q1 + q2) * L / 2;
+                const x_cg_rel = (q1 + 2 * q2) / (3 * (q1 + q2 || 1)) * L;
+
+                let Wx = 0, Wy = 0;
+                if (m.load.coordSystem === 'local') {
+                    Wx = q_total * (-s);
+                    Wy = q_total * c;
+                } else {
+                    const dir = m.load.direction || 'Y';
+                    if (dir === 'Y') Wy = -q_total;
+                    else Wx = q_total;
+                }
+                sumFx_ext += Wx;
+                sumFy_ext += Wy;
+                const x_cg = n1.x + c * x_cg_rel;
+                const y_cg = n1.y + s * x_cg_rel;
+                sumM_ext_O += (x_cg * Wy - y_cg * Wx);
+            }
+        });
+
+        let sumRx = 0, sumRy = 0, sumRm_O = 0;
+        nodes.forEach((n) => {
+            const r = reactionsByNode[n.id];
+            if (r) {
+                sumRx += r.rx;
+                sumRy += r.ry;
+                sumRm_O += r.rm + (n.x * r.ry - n.y * r.rx);
+            }
+        });
+
+        const errorFx = Math.abs(sumFx_ext + sumRx);
+        const errorFy = Math.abs(sumFy_ext + sumRy);
+        const errorM = Math.abs(sumM_ext_O + sumRm_O);
+        const isEquilibriumBalanced = Math.max(errorFx, errorFy, errorM) < 1e-3;
+
+        return {
+            K_global, K_ff, P_ext, P_eq, P_eff_f, d_global, d_f,
+            reactionsVector, freeDofs, restrainedDofs, totalDof,
+            nodes, members, nodeIndexMap,
+            displacementsByNode, reactionsByNode, memberResults, memberCalculations,
+            equilibrium: {
+                sumFx_ext, sumFy_ext, sumM_ext_O,
+                sumRx, sumRy, sumRm_O,
+                errorFx, errorFy, errorM,
+                isBalanced: isEquilibriumBalanced
+            }
+        };
+    }
+
+    static computeLocalStiffness(E, A, I, L, releases) {
+        const k = Matrix.zeros(6, 6);
+        const EA_L = (E * A) / L;
+        const EI = E * I;
+        const L2 = L * L;
+        const L3 = L2 * L;
+
+        k[0][0] = EA_L;  k[0][3] = -EA_L;
+        k[3][0] = -EA_L; k[3][3] = EA_L;
+
+        if (releases === 'none') {
+            const k12 = (12 * EI) / L3;
+            const k6 = (6 * EI) / L2;
+            const k4 = (4 * EI) / L;
+            const k2 = (2 * EI) / L;
+            k[1][1] = k12;   k[1][2] = k6;    k[1][4] = -k12;  k[1][5] = k6;
+            k[2][1] = k6;    k[2][2] = k4;    k[2][4] = -k6;   k[2][5] = k2;
+            k[4][1] = -k12;  k[4][2] = -k6;   k[4][4] = k12;   k[4][5] = -k6;
+            k[5][1] = k6;    k[5][2] = k2;    k[5][4] = -k6;   k[5][5] = k4;
+        } else if (releases === 'start') {
+            const k3 = (3 * EI) / L3;
+            const k3L = (3 * EI) / L2;
+            const k3LL = (3 * EI) / L;
+            k[1][1] = k3;    k[1][4] = -k3;   k[1][5] = k3L;
+            k[4][1] = -k3;   k[4][4] = k3;    k[4][5] = -k3L;
+            k[5][1] = k3L;   k[5][4] = -k3L;  k[5][5] = k3LL;
+        } else if (releases === 'end') {
+            const k3 = (3 * EI) / L3;
+            const k3L = (3 * EI) / L2;
+            const k3LL = (3 * EI) / L;
+            k[1][1] = k3;    k[1][2] = k3L;   k[1][4] = -k3;
+            k[2][1] = k3L;   k[2][2] = k3LL;  k[2][4] = -k3L;
+            k[4][1] = -k3;   k[4][2] = -k3L;  k[4][4] = k3;
+        }
+        return k;
+    }
+
+    static computeTransformationMatrix(c, s) {
+        const T = Matrix.zeros(6, 6);
+        T[0][0] = c;  T[0][1] = s;
+        T[1][0] = -s; T[1][1] = c;
+        T[2][2] = 1;
+        T[3][3] = c;  T[3][4] = s;
+        T[4][3] = -s; T[4][4] = c;
+        T[5][5] = 1;
+        return T;
+    }
+
+    static computeFixedEndActions(member, L, releases, c, s) {
+        const f0 = new Float64Array(6);
+        if (!member.load || member.load.enabled === false) return f0;
+
+        const q1 = member.load.q1 || 0;
+        const q2 = member.load.q2 !== undefined ? member.load.q2 : q1;
+        if (Math.abs(q1) < 1e-12 && Math.abs(q2) < 1e-12) return f0;
+
+        let q_trans = 0, q_trans_end = 0, q_axial = 0;
+        if (member.load.coordSystem === 'local') {
+            q_trans = q1;
+            q_trans_end = q2;
+        } else {
+            const dir = member.load.direction || 'Y';
+            if (dir === 'Y') {
+                q_trans = -q1 * c;
+                q_trans_end = -q2 * c;
+                q_axial = -q1 * s;
+            } else {
+                q_trans = q1 * s;
+                q_trans_end = q2 * s;
+                q_axial = q1 * c;
+            }
+        }
+
+        if (Math.abs(q_axial) > 1e-9) {
+            f0[0] = (q_axial * L) / 2;
+            f0[3] = (q_axial * L) / 2;
+        }
+
+        const w_u = q_trans;
+        const w_t = q_trans_end - q_trans;
+
+        let M1 = (w_u * L * L) / 12 + (w_t * L * L) / 30;
+        let M2 = -(w_u * L * L) / 12 - (w_t * L * L) / 20;
+        let V1 = (w_u * L) / 2 + (3 * w_t * L) / 20;
+        let V2 = (w_u * L) / 2 + (7 * w_t * L) / 20;
+
+        if (releases === 'start') {
+            V1 = V1 - (1.5 * M1) / L;
+            V2 = V2 + (1.5 * M1) / L;
+            M2 = M2 - 0.5 * M1;
+            M1 = 0;
+        } else if (releases === 'end') {
+            V1 = V1 + (1.5 * M2) / L;
+            V2 = V2 - (1.5 * M2) / L;
+            M1 = M1 - 0.5 * M2;
+            M2 = 0;
+        } else if (releases === 'both') {
+            V1 = (w_u * L) / 2 + (w_t * L) / 6;
+            V2 = (w_u * L) / 2 + (w_t * L) / 3;
+            M1 = 0;
+            M2 = 0;
+        }
+
+        f0[1] = V1; f0[2] = M1;
+        f0[4] = V2; f0[5] = M2;
+        return f0;
+    }
+}
+
+// ============================================================================
+// 3. MOTOR DE DIAGRAMAS (DiagramEngine)
+// ============================================================================
+class DiagramEngine {
+    static computeDiagrams(solution, numPoints = 50) {
+        const { memberCalculations, memberResults, nodeIndexMap, nodes } = solution;
+        const diagrams = {};
+
+        memberCalculations.forEach((mc) => {
+            const { member, L, c, s, E, A, I, mat, sec } = mc;
+            const res = memberResults[member.id];
+            const endForces = res.endForces;
+            const d_local = res.d_elem_local;
+
+            const n1 = nodes[nodeIndexMap.get(member.node1Id)];
+            const n2 = nodes[nodeIndexMap.get(member.node2Id)];
+
+            let w1 = 0, w2 = 0, qa = 0;
+            if (member.load && member.load.enabled !== false) {
+                const q1_in = member.load.q1 || 0;
+                const q2_in = member.load.q2 !== undefined ? member.load.q2 : q1_in;
+                if (member.load.coordSystem === 'local') {
+                    w1 = q1_in; w2 = q2_in;
+                } else {
+                    const dir = member.load.direction || 'Y';
+                    if (dir === 'Y') {
+                        w1 = -q1_in * c; w2 = -q2_in * c; qa = -q1_in * s;
+                    } else {
+                        w1 = q1_in * s; w2 = q2_in * s; qa = q1_in * c;
+                    }
+                }
+            }
+
+            const V1 = endForces.V1;
+            const M1 = endForces.M1;
+            const N1 = endForces.N1;
+
+            const u1L = d_local[0], v1L = d_local[1], th1L = d_local[2];
+            const u2L = d_local[3], v2L = d_local[4], th2L = d_local[5];
+
+            const points = [];
+            let maxN = -Infinity, minN = Infinity;
+            let maxV = -Infinity, minV = Infinity;
+            let maxM = -Infinity, minM = Infinity;
+            let maxSigma = 0;
+
+            const h = sec.h || (Math.sqrt((12 * I) / A) || 0.3);
+            const c_dist = h / 2;
+            const Fy = mat.Fy || 250;
+
+            for (let i = 0; i <= numPoints; i++) {
+                const xi = i / numPoints;
+                const x = xi * L;
+                const N_x = N1 - qa * x;
+                const deltaW = (w2 - w1) / L;
+                const V_x = V1 - (w1 * x + 0.5 * deltaW * x * x);
+                const M_x = M1 + V1 * x - (0.5 * w1 * x * x + (deltaW * x * x * x) / 6);
+
+                const h1 = 1 - 3 * xi * xi + 2 * xi * xi * xi;
+                const h2 = L * (xi - 2 * xi * xi + xi * xi * xi);
+                const h3 = 3 * xi * xi - 2 * xi * xi * xi;
+                const h4 = L * (-xi * xi + xi * xi * xi);
+
+                let v_x = h1 * v1L + h2 * th1L + h3 * v2L + h4 * th2L;
+                const u_x = (1 - xi) * u1L + xi * u2L;
+
+                if (Math.abs(w1) > 1e-6 && E * I > 0) {
+                    v_x += (w1 * x * x * (L - x) * (L - x)) / (24 * E * I);
+                }
+
+                const x_undef = n1.x + c * x;
+                const y_undef = n1.y + s * x;
+                const dx_def = u_x * c - v_x * s;
+                const dy_def = u_x * s + v_x * c;
+
+                const sigma_x = ((Math.abs(N_x) / A) + (Math.abs(M_x) * c_dist / I)) / 1000;
+
+                if (N_x > maxN) maxN = N_x;
+                if (N_x < minN) minN = N_x;
+                if (V_x > maxV) maxV = V_x;
+                if (V_x < minV) minV = V_x;
+                if (M_x > maxM) maxM = M_x;
+                if (M_x < minM) minM = M_x;
+                if (sigma_x > maxSigma) maxSigma = sigma_x;
+
+                points.push({
+                    x, xi,
+                    N: Math.abs(N_x) < 1e-5 ? 0 : N_x,
+                    V: Math.abs(V_x) < 1e-5 ? 0 : V_x,
+                    M: Math.abs(M_x) < 1e-5 ? 0 : M_x,
+                    x_undef, y_undef, dx_def, dy_def, sigma: sigma_x
+                });
+            }
+
+            diagrams[member.id] = {
+                memberId: member.id, L, points,
+                extrema: {
+                    maxN, minN, maxV, minV, maxM, minM, maxSigma,
+                    ratio: Fy > 0 ? maxSigma / Fy : 0,
+                    isCritical: (Fy > 0 ? maxSigma / Fy : 0) > 1.0
+                }
+            };
+        });
+
+        return diagrams;
+    }
+}
+
+// ============================================================================
+// 4. GESTOR DE ESTADO CENTRAL (AppState)
+// ============================================================================
+class AppState {
+    constructor() {
+        this.listeners = [];
+        this.undoStack = [];
+        this.redoStack = [];
+        this.maxHistory = 50;
+        this.clipboard = null;
+
+        this.model = {
+            name: 'Pórtico 2D - Modelo Activo',
+            nodes: [],
+            members: [],
+            materials: [
+                { id: 'mat-1', name: 'Acero A36', E: 200, nu: 0.30, G: 76.9, Fy: 250, density: 7850 },
+                { id: 'mat-2', name: 'Acero A572 Gr. 50', E: 200, nu: 0.30, G: 76.9, Fy: 345, density: 7850 },
+                { id: 'mat-3', name: 'Aluminio 6061-T6', E: 68.9, nu: 0.33, G: 25.9, Fy: 276, density: 2700 },
+                { id: 'mat-4', name: "Hormigón f'c=28 MPa", E: 24.87, nu: 0.20, G: 10.36, Fy: 28, density: 2400 },
+                { id: 'mat-5', name: 'Madera Estructural', E: 12.0, nu: 0.25, G: 4.8, Fy: 15, density: 600 }
+            ],
+            sections: [
+                { id: 'sec-1', name: 'IPE 300', A: 0.00538, I: 0.0000836, h: 0.30, b: 0.15 },
+                { id: 'sec-2', name: 'HEB 200', A: 0.00781, I: 0.0000570, h: 0.20, b: 0.20 },
+                { id: 'sec-3', name: 'Viga Concreto 30x50', A: 0.15000, I: 0.003125, h: 0.50, b: 0.30 },
+                { id: 'sec-4', name: 'Columna Concreto 40x40', A: 0.16000, I: 0.002133, h: 0.40, b: 0.40 }
+            ]
+        };
+
+        this.ui = {
+            activeTool: 'select',
+            viewMode: 'model',
+            theme: 'dark',
+            snapToGrid: true,
+            gridSpacing: 1.0,
+            deformedScale: 80,
+            diagramScale: 1.0,
+            showNodeLabels: true,
+            showMemberLabels: true,
+            showLoads: true,
+            showValues: true,
+            momentSignConvention: 'sap'
+        };
+
+        this.selectedNodes = new Set();
+        this.selectedMembers = new Set();
+        this.solution = null;
+        this.diagrams = null;
+        this.nodeCounter = 1;
+        this.memberCounter = 1;
+        this.pushHistory();
+    }
+
+    subscribe(fn) { this.listeners.push(fn); }
+    notify(type = 'update') { this.listeners.forEach(fn => fn(this, type)); }
+
+    pushHistory() {
+        const snapshot = JSON.stringify({
+            model: this.model,
+            nodeCounter: this.nodeCounter,
+            memberCounter: this.memberCounter
+        });
+        if (this.undoStack.length > 0 && this.undoStack[this.undoStack.length - 1] === snapshot) return;
+        this.undoStack.push(snapshot);
+        if (this.undoStack.length > this.maxHistory) this.undoStack.shift();
+        this.redoStack = [];
+    }
+
+    undo() {
+        if (this.undoStack.length <= 1) return false;
+        this.redoStack.push(this.undoStack.pop());
+        this.restoreSnapshot(this.undoStack[this.undoStack.length - 1]);
+        this.notify('undo');
+        return true;
+    }
+
+    redo() {
+        if (this.redoStack.length === 0) return false;
+        const next = this.redoStack.pop();
+        this.undoStack.push(next);
+        this.restoreSnapshot(next);
+        this.notify('redo');
+        return true;
+    }
+
+    restoreSnapshot(jsonStr) {
+        try {
+            const data = JSON.parse(jsonStr);
+            this.model = data.model;
+            this.nodeCounter = data.nodeCounter;
+            this.memberCounter = data.memberCounter;
+            this.selectedNodes.clear();
+            this.selectedMembers.clear();
+            this.solution = null;
+            this.diagrams = null;
+        } catch (e) {
+            console.error('Error restaurando snapshot:', e);
+        }
+    }
+
+    addNode(x, y) {
+        const snap = this.ui.snapToGrid ? this.ui.gridSpacing : 0.01;
+        const snapX = Math.round(x / snap) * snap;
+        const snapY = Math.round(y / snap) * snap;
+        const existing = this.model.nodes.find(n => Math.hypot(n.x - snapX, n.y - snapY) < 0.05);
+        if (existing) return existing;
+
+        const id = `N${this.nodeCounter++}`;
+        const newNode = {
+            id,
+            x: Number(snapX.toFixed(3)),
+            y: Number(snapY.toFixed(3)),
+            support: null,
+            load: null,
+            spring: null
+        };
+        this.model.nodes.push(newNode);
+        this.pushHistory();
+        this.notify('nodeAdded');
+        return newNode;
+    }
+
+    addMember(node1Id, node2Id) {
+        if (node1Id === node2Id) return null;
+        const existing = this.model.members.find(m =>
+            (m.node1Id === node1Id && m.node2Id === node2Id) ||
+            (m.node1Id === node2Id && m.node2Id === node1Id)
+        );
+        if (existing) return existing;
+
+        const id = `B${this.memberCounter++}`;
+        const newMember = {
+            id, node1Id, node2Id,
+            materialId: this.model.materials[0]?.id || 'mat-1',
+            sectionId: this.model.sections[0]?.id || 'sec-1',
+            releases: 'none',
+            load: null
+        };
+        this.model.members.push(newMember);
+        this.pushHistory();
+        this.notify('memberAdded');
+        return newMember;
+    }
+
+    deleteSelection() {
+        if (this.selectedNodes.size === 0 && this.selectedMembers.size === 0) return;
+        const nodesToDelete = new Set(this.selectedNodes);
+        const membersToDelete = new Set(this.selectedMembers);
+
+        this.model.members.forEach(m => {
+            if (nodesToDelete.has(m.node1Id) || nodesToDelete.has(m.node2Id)) {
+                membersToDelete.add(m.id);
+            }
+        });
+
+        this.model.members = this.model.members.filter(m => !membersToDelete.has(m.id));
+        this.model.nodes = this.model.nodes.filter(n => !nodesToDelete.has(n.id));
+        this.selectedNodes.clear();
+        this.selectedMembers.clear();
+        this.solution = null;
+        this.diagrams = null;
+        this.pushHistory();
+        this.notify('deleted');
+    }
+
+    copy() {
+        if (this.selectedNodes.size === 0 && this.selectedMembers.size === 0) return false;
+        const nodesToCopy = this.model.nodes.filter(n => this.selectedNodes.has(n.id));
+        const membersToCopy = this.model.members.filter(m =>
+            this.selectedMembers.has(m.id) ||
+            (this.selectedNodes.has(m.node1Id) && this.selectedNodes.has(m.node2Id))
+        );
+        this.clipboard = JSON.parse(JSON.stringify({ nodes: nodesToCopy, members: membersToCopy }));
+        return true;
+    }
+
+    cut() {
+        if (this.copy()) {
+            this.deleteSelection();
+            return true;
+        }
+        return false;
+    }
+
+    paste(offset = { x: 1.0, y: 1.0 }) {
+        if (!this.clipboard || (!this.clipboard.nodes.length && !this.clipboard.members.length)) return false;
+        const idMap = new Map();
+        this.selectedNodes.clear();
+        this.selectedMembers.clear();
+
+        this.clipboard.nodes.forEach(oldNode => {
+            const newId = `N${this.nodeCounter++}`;
+            idMap.set(oldNode.id, newId);
+            const newNode = {
+                ...JSON.parse(JSON.stringify(oldNode)),
+                id: newId,
+                x: Number((oldNode.x + offset.x).toFixed(3)),
+                y: Number((oldNode.y + offset.y).toFixed(3))
+            };
+            this.model.nodes.push(newNode);
+            this.selectedNodes.add(newId);
+        });
+
+        this.clipboard.members.forEach(oldMem => {
+            const n1 = idMap.get(oldMem.node1Id);
+            const n2 = idMap.get(oldMem.node2Id);
+            if (n1 && n2) {
+                const newMemId = `B${this.memberCounter++}`;
+                const newMem = {
+                    ...JSON.parse(JSON.stringify(oldMem)),
+                    id: newMemId, node1Id: n1, node2Id: n2
+                };
+                this.model.members.push(newMem);
+                this.selectedMembers.add(newMemId);
+            }
+        });
+
+        this.pushHistory();
+        this.notify('pasted');
+        return true;
+    }
+
+    newProject() {
+        this.model.name = 'Nuevo Proyecto 2D';
+        this.model.nodes = [];
+        this.model.members = [];
+        this.nodeCounter = 1;
+        this.memberCounter = 1;
+        this.selectedNodes.clear();
+        this.selectedMembers.clear();
+        this.solution = null;
+        this.diagrams = null;
+        this.undoStack = [];
+        this.redoStack = [];
+        this.pushHistory();
+        this.notify('reset');
+    }
+
+    loadExample(exampleKey) {
+        this.newProject();
+        if (exampleKey === 'continuous_beam') {
+            this.model.name = 'Viga Continua de 3 Tramos (12 m)';
+            const n1 = this.addNode(0, 3);
+            const n2 = this.addNode(4, 3);
+            const n3 = this.addNode(8, 3);
+            const n4 = this.addNode(12, 3);
+            n1.support = { type: 'fixed' };
+            n2.support = { type: 'roller' };
+            n3.support = { type: 'roller' };
+            n4.support = { type: 'roller' };
+
+            const b1 = this.addMember(n1.id, n2.id);
+            const b2 = this.addMember(n2.id, n3.id);
+            const b3 = this.addMember(n3.id, n4.id);
+
+            b2.load = { q1: 25, q2: 25, coordSystem: 'global', direction: 'Y', enabled: true };
+            b3.load = { q1: 10, q2: 30, coordSystem: 'global', direction: 'Y', enabled: true };
+            n2.load = { fx: 0, fy: -40, m: 0 };
+
+        } else if (exampleKey === 'simple_frame') {
+            this.model.name = 'Pórtico Simple con Viento y Gravitatoria';
+            const n1 = this.addNode(0, 0);
+            const n2 = this.addNode(6, 0);
+            const n3 = this.addNode(0, 4);
+            const n4 = this.addNode(6, 4);
+            n1.support = { type: 'fixed' };
+            n2.support = { type: 'pinned' };
+
+            const c1 = this.addMember(n1.id, n3.id);
+            const c2 = this.addMember(n2.id, n4.id);
+            const v1 = this.addMember(n3.id, n4.id);
+
+            c1.load = { q1: 15, q2: 15, coordSystem: 'global', direction: 'X', enabled: true };
+            v1.load = { q1: 35, q2: 35, coordSystem: 'global', direction: 'Y', enabled: true };
+            n3.load = { fx: 20, fy: 0, m: 0 };
+
+        } else if (exampleKey === 'gable_frame') {
+            this.model.name = 'Pórtico Industrial a Dos Aguas (12 m x 5.5 m)';
+            const n1 = this.addNode(0, 0);
+            const n2 = this.addNode(12, 0);
+            const n3 = this.addNode(0, 4);
+            const n4 = this.addNode(12, 4);
+            const n5 = this.addNode(6, 5.5);
+            n1.support = { type: 'pinned' };
+            n2.support = { type: 'roller' };
+
+            const c1 = this.addMember(n1.id, n3.id);
+            const c2 = this.addMember(n2.id, n4.id);
+            const r1 = this.addMember(n3.id, n5.id);
+            const r2 = this.addMember(n5.id, n4.id);
+            r1.releases = 'end';
+
+            r1.load = { q1: 18, q2: 18, coordSystem: 'global', direction: 'Y', enabled: true };
+            r2.load = { q1: 18, q2: 18, coordSystem: 'global', direction: 'Y', enabled: true };
+
+        } else if (exampleKey === 'multi_story') {
+            this.model.name = 'Pórtico 2 Niveles y 2 Vanos con Resortes';
+            const n1 = this.addNode(0, 0);
+            const n2 = this.addNode(5, 0);
+            const n3 = this.addNode(10, 0);
+
+            const n4 = this.addNode(0, 3.5);
+            const n5 = this.addNode(5, 3.5);
+            const n6 = this.addNode(10, 3.5);
+
+            const n7 = this.addNode(0, 7.0);
+            const n8 = this.addNode(5, 7.0);
+            const n9 = this.addNode(10, 7.0);
+
+            n1.support = { type: 'fixed' };
+            n2.support = { type: 'pinned' };
+            n3.support = { type: 'roller' };
+            n3.spring = { kx: 0, ky: 5000, km: 0 };
+
+            this.addMember(n1.id, n4.id);
+            this.addMember(n2.id, n5.id);
+            this.addMember(n3.id, n6.id);
+
+            const v11 = this.addMember(n4.id, n5.id);
+            const v12 = this.addMember(n5.id, n6.id);
+            v11.load = { q1: 30, q2: 30, coordSystem: 'global', direction: 'Y', enabled: true };
+            v12.load = { q1: 30, q2: 30, coordSystem: 'global', direction: 'Y', enabled: true };
+
+            this.addMember(n4.id, n7.id);
+            this.addMember(n5.id, n8.id);
+            this.addMember(n6.id, n9.id);
+
+            const v21 = this.addMember(n7.id, n8.id);
+            const v22 = this.addMember(n8.id, n9.id);
+            v21.load = { q1: 20, q2: 20, coordSystem: 'global', direction: 'Y', enabled: true };
+            v22.load = { q1: 20, q2: 20, coordSystem: 'global', direction: 'Y', enabled: true };
+
+            n4.load = { fx: 25, fy: 0, m: 0 };
+            n7.load = { fx: 40, fy: 0, m: 0 };
+        }
+
+        this.pushHistory();
+        this.notify('exampleLoaded');
+    }
+}
+
+// ============================================================================
+// 5. RENDERIZADOR CANVAS 2D (CanvasRenderer)
+// ============================================================================
+class CanvasRenderer {
+    constructor(canvas, state) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.state = state;
+        this.scale = 45;
+        this.offsetX = 120;
+        this.offsetY = 350;
+
+        this.isPanning = false;
+        this.isDraggingNode = false;
+        this.draggedNode = null;
+        this.startPanX = 0;
+        this.startPanY = 0;
+        this.mouseWorldX = 0;
+        this.mouseWorldY = 0;
+
+        this.isBoxSelecting = false;
+        this.boxStartX = 0;
+        this.boxStartY = 0;
+        this.boxEndX = 0;
+        this.boxEndY = 0;
+
+        this.memberStartNode = null;
+        this.hoveredNode = null;
+        this.hoveredMember = null;
+
+        this.initEvents();
+        this.resize();
+    }
+
+    resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = this.canvas.getBoundingClientRect();
+        this.width = rect.width;
+        this.height = rect.height;
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+        this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        this.render();
+    }
+
+    worldToScreen(wx, wy) {
+        return {
+            x: this.offsetX + wx * this.scale,
+            y: this.offsetY - wy * this.scale
+        };
+    }
+
+    screenToWorld(sx, sy) {
+        return {
+            x: (sx - this.offsetX) / this.scale,
+            y: (this.offsetY - sy) / this.scale
+        };
+    }
+
+    fitToView() {
+        const nodes = this.state.model.nodes;
+        if (nodes.length === 0) {
+            this.offsetX = this.width / 2;
+            this.offsetY = this.height / 2;
+            this.scale = 45;
+            this.render();
+            return;
+        }
+
+        let minX = Infinity, maxX = -Infinity;
+        let minY = Infinity, maxY = -Infinity;
+        nodes.forEach(n => {
+            if (n.x < minX) minX = n.x;
+            if (n.x > maxX) maxX = n.x;
+            if (n.y < minY) minY = n.y;
+            if (n.y > maxY) maxY = n.y;
+        });
+
+        if (maxX - minX < 2) { minX -= 1; maxX += 1; }
+        if (maxY - minY < 2) { minY -= 1; maxY += 1; }
+
+        const padding = 80;
+        const availW = this.width - padding * 2;
+        const availH = this.height - padding * 2;
+        this.scale = Math.min(availW / (maxX - minX), availH / (maxY - minY));
+        this.scale = Math.max(15, Math.min(180, this.scale));
+
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        this.offsetX = this.width / 2 - centerX * this.scale;
+        this.offsetY = this.height / 2 + centerY * this.scale;
+        this.render();
+    }
+
+    initEvents() {
+        window.addEventListener('resize', () => this.resize());
+
+        this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
+        window.addEventListener('mousemove', (e) => this.onMouseMove(e));
+        window.addEventListener('mouseup', (e) => this.onMouseUp(e));
+
+        this.canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const rect = this.canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            const wb = this.screenToWorld(mx, my);
+            const zoom = e.deltaY < 0 ? 1.15 : 0.87;
+            this.scale = Math.max(5, Math.min(600, this.scale * zoom));
+            this.offsetX = mx - wb.x * this.scale;
+            this.offsetY = my + wb.y * this.scale;
+            this.render();
+        }, { passive: false });
+
+        this.canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+            if (this.memberStartNode) {
+                this.memberStartNode = null;
+                this.render();
+            } else {
+                this.state.selectedNodes.clear();
+                this.state.selectedMembers.clear();
+                this.state.notify('selectionChanged');
+                this.render();
+            }
+        });
+    }
+
+    onMouseDown(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const world = this.screenToWorld(sx, sy);
+
+        if (e.button === 1 || e.spaceKey || (e.button === 0 && e.altKey)) {
+            this.isPanning = true;
+            this.startPanX = sx - this.offsetX;
+            this.startPanY = sy - this.offsetY;
+            this.canvas.style.cursor = 'grab';
+            return;
+        }
+
+        if (e.button !== 0) return;
+
+        const tool = this.state.ui.activeTool;
+        const clickedNode = this.findNodeAt(sx, sy);
+        const clickedMember = clickedNode ? null : this.findMemberAt(sx, sy);
+
+        if (tool === 'select') {
+            if (clickedNode) {
+                if (e.shiftKey) {
+                    if (this.state.selectedNodes.has(clickedNode.id)) this.state.selectedNodes.delete(clickedNode.id);
+                    else this.state.selectedNodes.add(clickedNode.id);
+                } else if (!this.state.selectedNodes.has(clickedNode.id)) {
+                    this.state.selectedNodes.clear();
+                    this.state.selectedMembers.clear();
+                    this.state.selectedNodes.add(clickedNode.id);
+                }
+                this.isDraggingNode = true;
+                this.draggedNode = clickedNode;
+            } else if (clickedMember) {
+                if (e.shiftKey) {
+                    if (this.state.selectedMembers.has(clickedMember.id)) this.state.selectedMembers.delete(clickedMember.id);
+                    else this.state.selectedMembers.add(clickedMember.id);
+                } else {
+                    this.state.selectedNodes.clear();
+                    this.state.selectedMembers.clear();
+                    this.state.selectedMembers.add(clickedMember.id);
+                }
+            } else {
+                if (!e.shiftKey) {
+                    this.state.selectedNodes.clear();
+                    this.state.selectedMembers.clear();
+                }
+                this.isBoxSelecting = true;
+                this.boxStartX = sx; this.boxStartY = sy;
+                this.boxEndX = sx; this.boxEndY = sy;
+            }
+            this.state.notify('selectionChanged');
+            this.render();
+
+        } else if (tool === 'node') {
+            const snap = this.state.ui.snapToGrid ? this.state.ui.gridSpacing : 0.1;
+            const nx = Math.round(world.x / snap) * snap;
+            const ny = Math.round(world.y / snap) * snap;
+            this.state.addNode(nx, ny);
+            this.render();
+
+        } else if (tool === 'member') {
+            if (clickedNode) {
+                if (!this.memberStartNode) {
+                    this.memberStartNode = clickedNode;
+                } else {
+                    if (this.memberStartNode.id !== clickedNode.id) {
+                        this.state.addMember(this.memberStartNode.id, clickedNode.id);
+                        this.memberStartNode = clickedNode;
+                    }
+                }
+            } else {
+                const snap = this.state.ui.snapToGrid ? this.state.ui.gridSpacing : 0.1;
+                const created = this.state.addNode(Math.round(world.x / snap) * snap, Math.round(world.y / snap) * snap);
+                if (!this.memberStartNode) this.memberStartNode = created;
+                else {
+                    this.state.addMember(this.memberStartNode.id, created.id);
+                    this.memberStartNode = created;
+                }
+            }
+            this.render();
+
+        } else if (tool === 'support') {
+            if (clickedNode) {
+                this.state.selectedNodes.clear();
+                this.state.selectedNodes.add(clickedNode.id);
+                this.state.notify('openSupportModal');
+            }
+        }
+    }
+
+    onMouseMove(e) {
+        const rect = this.canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const world = this.screenToWorld(sx, sy);
+        this.mouseWorldX = world.x;
+        this.mouseWorldY = world.y;
+
+        const coordDisplay = document.getElementById('status-coords');
+        if (coordDisplay) coordDisplay.textContent = `X: ${world.x.toFixed(2)} m, Y: ${world.y.toFixed(2)} m`;
+
+        if (this.isPanning) {
+            this.offsetX = sx - this.startPanX;
+            this.offsetY = sy - this.startPanY;
+            this.render();
+            return;
+        }
+
+        if (this.isDraggingNode && this.draggedNode) {
+            const snap = this.state.ui.snapToGrid ? this.state.ui.gridSpacing : 0.05;
+            this.draggedNode.x = Number((Math.round(world.x / snap) * snap).toFixed(3));
+            this.draggedNode.y = Number((Math.round(world.y / snap) * snap).toFixed(3));
+            this.render();
+            return;
+        }
+
+        if (this.isBoxSelecting) {
+            this.boxEndX = sx; this.boxEndY = sy;
+            this.render();
+            return;
+        }
+
+        const prevNode = this.hoveredNode;
+        const prevMem = this.hoveredMember;
+        this.hoveredNode = this.findNodeAt(sx, sy);
+        this.hoveredMember = this.hoveredNode ? null : this.findMemberAt(sx, sy);
+
+        if (prevNode !== this.hoveredNode || prevMem !== this.hoveredMember || this.memberStartNode) {
+            this.render();
+        }
+    }
+
+    onMouseUp() {
+        if (this.isPanning) {
+            this.isPanning = false;
+            this.canvas.style.cursor = 'default';
+        }
+        if (this.isDraggingNode) {
+            this.isDraggingNode = false;
+            this.draggedNode = null;
+            this.state.pushHistory();
+            this.state.notify('nodeMoved');
+        }
+        if (this.isBoxSelecting) {
+            this.isBoxSelecting = false;
+            const x1 = Math.min(this.boxStartX, this.boxEndX);
+            const x2 = Math.max(this.boxStartX, this.boxEndX);
+            const y1 = Math.min(this.boxStartY, this.boxEndY);
+            const y2 = Math.max(this.boxStartY, this.boxEndY);
+
+            this.state.model.nodes.forEach(n => {
+                const s = this.worldToScreen(n.x, n.y);
+                if (s.x >= x1 && s.x <= x2 && s.y >= y1 && s.y <= y2) {
+                    this.state.selectedNodes.add(n.id);
+                }
+            });
+            this.state.notify('selectionChanged');
+            this.render();
+        }
+    }
+
+    findNodeAt(sx, sy, radius = 12) {
+        for (const n of this.state.model.nodes) {
+            const s = this.worldToScreen(n.x, n.y);
+            if (Math.hypot(s.x - sx, s.y - sy) <= radius) return n;
+        }
+        return null;
+    }
+
+    findMemberAt(sx, sy, tolerance = 10) {
+        const nodeMap = new Map();
+        this.state.model.nodes.forEach(n => nodeMap.set(n.id, n));
+        for (const m of this.state.model.members) {
+            const n1 = nodeMap.get(m.node1Id);
+            const n2 = nodeMap.get(m.node2Id);
+            if (!n1 || !n2) continue;
+            const s1 = this.worldToScreen(n1.x, n1.y);
+            const s2 = this.worldToScreen(n2.x, n2.y);
+            const dist = this.distToSegment({ x: sx, y: sy }, s1, s2);
+            if (dist <= tolerance) return m;
+        }
+        return null;
+    }
+
+    distToSegment(p, v, w) {
+        const l2 = (v.x - w.x) ** 2 + (v.y - w.y) ** 2;
+        if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
+        let t = Math.max(0, Math.min(1, ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2));
+        return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
+    }
+
+    render() {
+        const ctx = this.ctx;
+        const isDark = this.state.ui.theme === 'dark';
+
+        ctx.fillStyle = isDark ? '#111827' : '#f8fafc';
+        ctx.fillRect(0, 0, this.width, this.height);
+
+        this.drawGrid(ctx, isDark);
+        this.drawAxes(ctx, isDark);
+
+        const viewMode = this.state.ui.viewMode;
+        if (viewMode === 'model' || !this.state.solution) {
+            this.drawMembers(ctx, isDark);
+            this.drawLoads(ctx, isDark);
+        } else if (viewMode === 'deformed') {
+            this.drawUndeformedGhost(ctx, isDark);
+            this.drawDeformedShape(ctx, isDark);
+            this.drawReactions(ctx, isDark);
+        } else if (['axial', 'shear', 'moment'].includes(viewMode)) {
+            this.drawDiagram(ctx, viewMode, isDark);
+            this.drawReactions(ctx, isDark);
+        }
+
+        this.drawSupports(ctx, isDark);
+        this.drawNodes(ctx, isDark);
+
+        if (this.memberStartNode) this.drawRubberBand(ctx);
+        if (this.isBoxSelecting) this.drawSelectionBox(ctx);
+    }
+
+    drawGrid(ctx, isDark) {
+        const spacing = this.state.ui.gridSpacing || 1.0;
+        if (spacing * this.scale < 10) return;
+
+        const sw = this.screenToWorld(0, this.height);
+        const ew = this.screenToWorld(this.width, 0);
+
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = isDark ? '#1f2937' : '#e2e8f0';
+        ctx.beginPath();
+        for (let x = Math.floor(sw.x / spacing) * spacing; x <= Math.ceil(ew.x / spacing) * spacing; x += spacing) {
+            const s = this.worldToScreen(x, 0);
+            ctx.moveTo(s.x, 0); ctx.lineTo(s.x, this.height);
+        }
+        for (let y = Math.floor(sw.y / spacing) * spacing; y <= Math.ceil(ew.y / spacing) * spacing; y += spacing) {
+            const s = this.worldToScreen(0, y);
+            ctx.moveTo(0, s.y); ctx.lineTo(this.width, s.y);
+        }
+        ctx.stroke();
+    }
+
+    drawAxes(ctx, isDark) {
+        const org = this.worldToScreen(0, 0);
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = isDark ? 'rgba(239, 68, 68, 0.4)' : 'rgba(220, 38, 38, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(0, org.y); ctx.lineTo(this.width, org.y);
+        ctx.stroke();
+
+        ctx.strokeStyle = isDark ? 'rgba(34, 197, 94, 0.4)' : 'rgba(22, 163, 74, 0.4)';
+        ctx.beginPath();
+        ctx.moveTo(org.x, 0); ctx.lineTo(org.x, this.height);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    drawMembers(ctx, isDark) {
+        const nodeMap = new Map();
+        this.state.model.nodes.forEach(n => nodeMap.set(n.id, n));
+
+        this.state.model.members.forEach(m => {
+            const n1 = nodeMap.get(m.node1Id);
+            const n2 = nodeMap.get(m.node2Id);
+            if (!n1 || !n2) return;
+
+            const s1 = this.worldToScreen(n1.x, n1.y);
+            const s2 = this.worldToScreen(n2.x, n2.y);
+            const isSelected = this.state.selectedMembers.has(m.id);
+
+            ctx.strokeStyle = isSelected ? '#38bdf8' : (isDark ? '#94a3b8' : '#334155');
+            ctx.lineWidth = isSelected ? 4 : 3;
+            ctx.beginPath();
+            ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y);
+            ctx.stroke();
+
+            // Rótulas
+            const rel = m.releases || 'none';
+            if (rel === 'start' || rel === 'both') this.drawHingeCircle(ctx, s1, s2, isDark);
+            if (rel === 'end' || rel === 'both') this.drawHingeCircle(ctx, s2, s1, isDark);
+
+            if (this.state.ui.showMemberLabels) {
+                const midX = (s1.x + s2.x) / 2;
+                const midY = (s1.y + s2.y) / 2;
+                const L = Math.hypot(n2.x - n1.x, n2.y - n1.y);
+                ctx.font = '10px Inter, sans-serif';
+                ctx.fillStyle = isSelected ? '#38bdf8' : (isDark ? '#cbd5e1' : '#475569');
+                ctx.textAlign = 'center';
+                ctx.fillText(`${m.id} (${L.toFixed(2)}m)`, midX, midY - 6);
+            }
+        });
+    }
+
+    drawHingeCircle(ctx, near, far, isDark) {
+        const dx = far.x - near.x, dy = far.y - near.y;
+        const dist = Math.hypot(dx, dy);
+        const offset = Math.min(14, dist * 0.15);
+        const hx = near.x + (dx / dist) * offset;
+        const hy = near.y + (dy / dist) * offset;
+
+        ctx.fillStyle = isDark ? '#111827' : '#ffffff';
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(hx, hy, 4, 0, Math.PI * 2);
+        ctx.fill(); ctx.stroke();
+    }
+
+    drawNodes(ctx, isDark) {
+        this.state.model.nodes.forEach(n => {
+            const s = this.worldToScreen(n.x, n.y);
+            const isSelected = this.state.selectedNodes.has(n.id);
+
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, isSelected ? 6.5 : 4.5, 0, Math.PI * 2);
+            ctx.fillStyle = isSelected ? '#06b6d4' : (isDark ? '#f8fafc' : '#0f172a');
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = isSelected ? 2 : 1;
+            ctx.fill(); ctx.stroke();
+
+            if (this.state.ui.showNodeLabels) {
+                ctx.font = 'bold 11px Inter, sans-serif';
+                ctx.fillStyle = isSelected ? '#06b6d4' : (isDark ? '#e2e8f0' : '#1e293b');
+                ctx.textAlign = 'left';
+                ctx.fillText(` ${n.id}`, s.x + 8, s.y - 8);
+            }
+        });
+    }
+
+    drawSupports(ctx, isDark) {
+        this.state.model.nodes.forEach(n => {
+            if (!n.support && !n.spring) return;
+            const s = this.worldToScreen(n.x, n.y);
+            const sup = n.support;
+            ctx.save();
+            ctx.translate(s.x, s.y);
+
+            if (sup) {
+                if (sup.type === 'fixed') {
+                    ctx.fillStyle = isDark ? '#475569' : '#94a3b8';
+                    ctx.fillRect(-14, 0, 28, 6);
+                    ctx.strokeStyle = '#64748b';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    for (let x = -12; x <= 12; x += 6) {
+                        ctx.moveTo(x, 6); ctx.lineTo(x - 5, 13);
+                    }
+                    ctx.stroke();
+                } else if (sup.type === 'pinned') {
+                    ctx.strokeStyle = '#10b981';
+                    ctx.fillStyle = isDark ? '#064e3b' : '#d1fae5';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0); ctx.lineTo(-12, 18); ctx.lineTo(12, 18); ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-16, 18); ctx.lineTo(16, 18); ctx.stroke();
+                } else if (sup.type === 'roller') {
+                    ctx.strokeStyle = '#f59e0b';
+                    ctx.fillStyle = isDark ? '#78350f' : '#fef3c7';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0); ctx.lineTo(-11, 14); ctx.lineTo(11, 14); ctx.closePath();
+                    ctx.fill(); ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(-6, 18, 3, 0, Math.PI * 2);
+                    ctx.arc(6, 18, 3, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-15, 22); ctx.lineTo(15, 22); ctx.stroke();
+                }
+            }
+
+            if (n.spring && (n.spring.kx || n.spring.ky || n.spring.km)) {
+                ctx.strokeStyle = '#ec4899';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(-5, 6); ctx.lineTo(5, 12);
+                ctx.lineTo(-5, 18); ctx.lineTo(5, 24); ctx.lineTo(0, 30);
+                ctx.stroke();
+            }
+            ctx.restore();
+        });
+    }
+
+    drawLoads(ctx, isDark) {
+        if (!this.state.ui.showLoads) return;
+
+        this.state.model.nodes.forEach(n => {
+            if (!n.load) return;
+            const s = this.worldToScreen(n.x, n.y);
+            const { fx = 0, fy = 0, m = 0 } = n.load;
+            if (Math.abs(fx) > 1e-4) this.drawForceArrow(ctx, s.x, s.y, fx, 0, `${fx} kN`, '#ef4444');
+            if (Math.abs(fy) > 1e-4) this.drawForceArrow(ctx, s.x, s.y, 0, fy, `${fy} kN`, '#ef4444');
+            if (Math.abs(m) > 1e-4) this.drawMomentArc(ctx, s.x, s.y, m, `${m} kN·m`, '#f97316');
+        });
+
+        const nodeMap = new Map();
+        this.state.model.nodes.forEach(n => nodeMap.set(n.id, n));
+        this.state.model.members.forEach(mem => {
+            if (!mem.load || mem.load.enabled === false) return;
+            const n1 = nodeMap.get(mem.node1Id);
+            const n2 = nodeMap.get(mem.node2Id);
+            if (!n1 || !n2) return;
+            this.drawDistributedLoad(ctx, n1, n2, mem.load, isDark);
+        });
+    }
+
+    drawForceArrow(ctx, sx, sy, fx, fy, label, color) {
+        const len = 42;
+        const angle = Math.atan2(-fy, fx);
+        const fromX = sx - Math.cos(angle) * len;
+        const fromY = sy - Math.sin(angle) * len;
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY); ctx.lineTo(sx, sy); ctx.stroke();
+
+        const head = 10;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx - head * Math.cos(angle - Math.PI / 6), sy - head * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(sx - head * Math.cos(angle + Math.PI / 6), sy - head * Math.sin(angle + Math.PI / 6));
+        ctx.closePath(); ctx.fill();
+
+        ctx.font = 'bold 11px Inter, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, fromX - Math.cos(angle) * 12, fromY - Math.sin(angle) * 12);
+    }
+
+    drawMomentArc(ctx, sx, sy, m, label, color) {
+        const radius = 22;
+        const cw = m < 0;
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        if (cw) ctx.arc(sx, sy, radius, -Math.PI * 0.8, Math.PI * 0.6);
+        else ctx.arc(sx, sy, radius, Math.PI * 0.6, -Math.PI * 0.8, true);
+        ctx.stroke();
+
+        const endAngle = cw ? Math.PI * 0.6 : -Math.PI * 0.8;
+        ctx.beginPath();
+        ctx.arc(sx + radius * Math.cos(endAngle), sy + radius * Math.sin(endAngle), 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = 'bold 10px Inter, monospace';
+        ctx.fillText(label, sx + radius + 10, sy - 5);
+    }
+
+    drawDistributedLoad(ctx, n1, n2, load, isDark) {
+        const s1 = this.worldToScreen(n1.x, n1.y);
+        const s2 = this.worldToScreen(n2.x, n2.y);
+        const dx = s2.x - s1.x, dy = s2.y - s1.y;
+        const len = Math.hypot(dx, dy);
+        if (len < 1) return;
+
+        const ux = dx / len, uy = dy / len;
+        const nx = -uy, ny = ux;
+
+        const q1 = load.q1 || 0;
+        const q2 = load.q2 !== undefined ? load.q2 : q1;
+        const maxQ = Math.max(Math.abs(q1), Math.abs(q2), 1);
+        const h1 = (q1 / maxQ) * 35;
+        const h2 = (q2 / maxQ) * 35;
+
+        const p1x = s1.x + nx * h1, p1y = s1.y + ny * h1;
+        const p2x = s2.x + nx * h2, p2y = s2.y + ny * h2;
+
+        ctx.fillStyle = isDark ? 'rgba(239, 68, 68, 0.18)' : 'rgba(220, 38, 38, 0.15)';
+        ctx.beginPath();
+        ctx.moveTo(s1.x, s1.y); ctx.lineTo(p1x, p1y);
+        ctx.lineTo(p2x, p2y); ctx.lineTo(s2.x, s2.y);
+        ctx.closePath(); ctx.fill();
+
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(p1x, p1y); ctx.lineTo(p2x, p2y); ctx.stroke();
+
+        const numArrows = Math.max(2, Math.floor(len / 30));
+        for (let i = 0; i <= numArrows; i++) {
+            const t = i / numArrows;
+            const bx = s1.x + dx * t, by = s1.y + dy * t;
+            const tx = p1x + (p2x - p1x) * t, ty = p1y + (p2y - p1y) * t;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(bx, by); ctx.stroke();
+
+            const head = 5;
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx - nx * head - ux * head * 0.7, by - ny * head - uy * head * 0.7);
+            ctx.lineTo(bx - nx * head + ux * head * 0.7, by - ny * head + uy * head * 0.7);
+            ctx.closePath();
+            ctx.fillStyle = '#ef4444'; ctx.fill();
+        }
+
+        ctx.font = 'bold 10px Inter, monospace';
+        ctx.fillStyle = '#ef4444';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${q1} kN/m`, p1x + nx * 8, p1y + ny * 8);
+    }
+
+    drawDiagram(ctx, type, isDark) {
+        if (!this.state.diagrams) return;
+        const nodeMap = new Map();
+        this.state.model.nodes.forEach(n => nodeMap.set(n.id, n));
+
+        let colorFill, colorStroke, title;
+        if (type === 'axial') {
+            colorFill = 'rgba(239, 68, 68, 0.25)'; colorStroke = '#ef4444'; title = 'Diagrama de Fuerzas Axiales (N) [kN]';
+        } else if (type === 'shear') {
+            colorFill = 'rgba(16, 185, 129, 0.25)'; colorStroke = '#10b981'; title = 'Diagrama de Fuerzas Cortantes (V) [kN]';
+        } else if (type === 'moment') {
+            colorFill = 'rgba(139, 92, 246, 0.3)'; colorStroke = '#8b5cf6'; title = 'Diagrama de Momentos Flectores (M) [kN·m]';
+        }
+
+        ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.fillStyle = colorStroke;
+        ctx.textAlign = 'left';
+        ctx.fillText(title, 20, 30);
+
+        let globalMax = 0.01;
+        Object.values(this.state.diagrams).forEach(d => {
+            d.points.forEach(pt => {
+                const val = Math.abs(type === 'axial' ? pt.N : type === 'shear' ? pt.V : pt.M);
+                if (val > globalMax) globalMax = val;
+            });
+        });
+
+        const diagFactor = (60 * this.state.ui.diagramScale) / globalMax;
+
+        this.state.model.members.forEach(m => {
+            const n1 = nodeMap.get(m.node1Id);
+            const n2 = nodeMap.get(m.node2Id);
+            if (!n1 || !n2) return;
+            const s1 = this.worldToScreen(n1.x, n1.y);
+            const s2 = this.worldToScreen(n2.x, n2.y);
+
+            ctx.strokeStyle = isDark ? '#475569' : '#cbd5e1';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
+
+            const diag = this.state.diagrams[m.id];
+            if (!diag) return;
+
+            const dx = s2.x - s1.x, dy = s2.y - s1.y;
+            const len = Math.hypot(dx, dy);
+            const nx = -dy / len, ny = dx / len;
+            const pts = diag.points;
+
+            ctx.beginPath();
+            ctx.moveTo(s1.x, s1.y);
+            for (let i = 0; i < pts.length; i++) {
+                const pt = pts[i];
+                let val = (type === 'axial' ? pt.N : type === 'shear' ? pt.V : pt.M);
+                if (type === 'moment' && this.state.ui.momentSignConvention === 'sap') val = -val;
+                const offset = val * diagFactor;
+                ctx.lineTo(s1.x + dx * pt.xi + nx * offset, s1.y + dy * pt.xi + ny * offset);
+            }
+            ctx.lineTo(s2.x, s2.y);
+            ctx.closePath();
+            ctx.fillStyle = colorFill; ctx.fill();
+            ctx.strokeStyle = colorStroke; ctx.lineWidth = 2; ctx.stroke();
+
+            if (this.state.ui.showValues && pts.length > 0) {
+                const v1 = type === 'axial' ? pts[0].N : type === 'shear' ? pts[0].V : pts[0].M;
+                const v2 = type === 'axial' ? pts[pts.length - 1].N : type === 'shear' ? pts[pts.length - 1].V : pts[pts.length - 1].M;
+                ctx.font = '10px Inter, monospace';
+                ctx.fillStyle = isDark ? '#f1f5f9' : '#0f172a';
+                ctx.textAlign = 'center';
+                if (Math.abs(v1) > 0.05) ctx.fillText(v1.toFixed(1), s1.x + nx * (v1 * diagFactor + 12), s1.y + ny * (v1 * diagFactor + 12));
+                if (Math.abs(v2) > 0.05) ctx.fillText(v2.toFixed(1), s2.x + nx * (v2 * diagFactor + 12), s2.y + ny * (v2 * diagFactor + 12));
+            }
+        });
+    }
+
+    drawDeformedShape(ctx, isDark) {
+        if (!this.state.diagrams) return;
+        const scale = this.state.ui.deformedScale || 80;
+        ctx.font = 'bold 13px Inter, sans-serif';
+        ctx.fillStyle = '#06b6d4';
+        ctx.textAlign = 'left';
+        ctx.fillText(`Deformada Elástica (Escala x${scale})`, 20, 30);
+
+        this.state.model.members.forEach(m => {
+            const diag = this.state.diagrams[m.id];
+            if (!diag) return;
+            const pts = diag.points;
+            ctx.strokeStyle = '#06b6d4';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let i = 0; i < pts.length; i++) {
+                const pt = pts[i];
+                const s = this.worldToScreen(pt.x_undef + pt.dx_def * scale, pt.y_undef + pt.dy_def * scale);
+                if (i === 0) ctx.moveTo(s.x, s.y);
+                else ctx.lineTo(s.x, s.y);
+            }
+            ctx.stroke();
+        });
+    }
+
+    drawUndeformedGhost(ctx, isDark) {
+        const nodeMap = new Map();
+        this.state.model.nodes.forEach(n => nodeMap.set(n.id, n));
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = isDark ? '#334155' : '#cbd5e1';
+        ctx.lineWidth = 1.5;
+        this.state.model.members.forEach(m => {
+            const n1 = nodeMap.get(m.node1Id);
+            const n2 = nodeMap.get(m.node2Id);
+            if (!n1 || !n2) return;
+            const s1 = this.worldToScreen(n1.x, n1.y);
+            const s2 = this.worldToScreen(n2.x, n2.y);
+            ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
+        });
+        ctx.setLineDash([]);
+    }
+
+    drawReactions(ctx, isDark) {
+        if (!this.state.solution) return;
+        const reactions = this.state.solution.reactionsByNode;
+        this.state.model.nodes.forEach(n => {
+            const r = reactions[n.id];
+            if (!r || !r.isSupported) return;
+            const s = this.worldToScreen(n.x, n.y);
+            if (Math.abs(r.rx) > 0.01) this.drawReactionArrow(ctx, s.x, s.y, r.rx, 0, `Rx=${r.rx.toFixed(1)} kN`, '#10b981');
+            if (Math.abs(r.ry) > 0.01) this.drawReactionArrow(ctx, s.x, s.y, 0, r.ry, `Ry=${r.ry.toFixed(1)} kN`, '#10b981');
+            if (Math.abs(r.rm) > 0.01) this.drawMomentArc(ctx, s.x, s.y, r.rm, `Rm=${r.rm.toFixed(1)} kNm`, '#10b981');
+        });
+    }
+
+    drawReactionArrow(ctx, sx, sy, rx, ry, label, color) {
+        const len = 40;
+        const angle = Math.atan2(-ry, rx);
+        const fromX = sx - Math.cos(angle) * len;
+        const fromY = sy - Math.sin(angle) * len;
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(fromX, fromY); ctx.lineTo(sx, sy); ctx.stroke();
+
+        const head = 9;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(sx - head * Math.cos(angle - Math.PI / 6), sy - head * Math.sin(angle - Math.PI / 6));
+        ctx.lineTo(sx - head * Math.cos(angle + Math.PI / 6), sy - head * Math.sin(angle + Math.PI / 6));
+        ctx.closePath(); ctx.fill();
+
+        ctx.font = 'bold 10px Inter, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(label, fromX - Math.cos(angle) * 14, fromY - Math.sin(angle) * 14);
+    }
+
+    drawRubberBand(ctx) {
+        const s1 = this.worldToScreen(this.memberStartNode.x, this.memberStartNode.y);
+        const s2 = this.worldToScreen(this.mouseWorldX, this.mouseWorldY);
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y); ctx.stroke();
+        ctx.setLineDash([]);
+    }
+
+    drawSelectionBox(ctx) {
+        const x = Math.min(this.boxStartX, this.boxEndX);
+        const y = Math.min(this.boxStartY, this.boxEndY);
+        const w = Math.abs(this.boxStartX - this.boxEndX);
+        const h = Math.abs(this.boxStartY - this.boxEndY);
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 4]);
+        ctx.fillRect(x, y, w, h);
+        ctx.strokeRect(x, y, w, h);
+        ctx.setLineDash([]);
+    }
+}
+
+// ============================================================================
+// 6. GESTOR DE DIÁLOGOS (DialogManager)
+// ============================================================================
+class DialogManager {
+    constructor(state) {
+        this.state = state;
+        this.init();
+    }
+
+    init() {
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal || e.target.classList.contains('modal-close-btn')) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
+
+        this.state.subscribe((s, type) => {
+            if (type === 'openSupportModal') this.openSupportModal();
+        });
+    }
+
+    openModal(id) { document.getElementById(id)?.classList.add('active'); }
+    closeModal(id) { document.getElementById(id)?.classList.remove('active'); }
+
+    openMaterialsModal() {
+        this.renderMaterialsTable();
+        this.openModal('modal-materials');
+    }
+
+    renderMaterialsTable() {
+        const tbody = document.getElementById('materials-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        this.state.model.materials.forEach((mat) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${mat.name}</strong></td>
+                <td><input type="number" class="table-input" value="${mat.E}" step="1" data-id="${mat.id}" data-prop="E"></td>
+                <td><input type="number" class="table-input" value="${mat.nu}" step="0.01" data-id="${mat.id}" data-prop="nu"></td>
+                <td><input type="number" class="table-input" value="${mat.G}" step="0.1" data-id="${mat.id}" data-prop="G"></td>
+                <td><input type="number" class="table-input" value="${mat.Fy}" step="5" data-id="${mat.id}" data-prop="Fy"></td>
+                <td><button class="btn btn-xs btn-danger" data-delete-mat="${mat.id}">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        tbody.querySelectorAll('.table-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const id = e.target.dataset.id;
+                const prop = e.target.dataset.prop;
+                const val = parseFloat(e.target.value);
+                const m = this.state.model.materials.find(item => item.id === id);
+                if (m && !isNaN(val)) {
+                    m[prop] = val;
+                    if (prop === 'E' || prop === 'nu') m.G = Number((m.E / (2 * (1 + m.nu))).toFixed(2));
+                    this.state.pushHistory();
+                    this.renderMaterialsTable();
+                }
+            });
+        });
+
+        tbody.querySelectorAll('[data-delete-mat]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (this.state.model.materials.length <= 1) return alert('Debe conservar al menos un material.');
+                this.state.model.materials = this.state.model.materials.filter(m => m.id !== e.target.dataset.deleteMat);
+                this.state.pushHistory();
+                this.renderMaterialsTable();
+            });
+        });
+    }
+
+    addCustomMaterial() {
+        this.state.model.materials.push({
+            id: `mat-${Date.now()}`,
+            name: `Material ${this.state.model.materials.length + 1}`,
+            E: 200, nu: 0.30, G: 76.9, Fy: 250, density: 7850
+        });
+        this.state.pushHistory();
+        this.renderMaterialsTable();
+    }
+
+    openSupportModal() {
+        if (this.state.selectedNodes.size === 0) return alert('Seleccione al menos un nudo en el lienzo.');
+        const nodeId = Array.from(this.state.selectedNodes)[0];
+        const node = this.state.model.nodes.find(n => n.id === nodeId);
+        const sup = node?.support || { type: 'free' };
+        const spring = node?.spring || { kx: 0, ky: 0, km: 0 };
+
+        document.getElementById('support-type-select').value = sup.type || 'free';
+        document.getElementById('chk-rx').checked = !!sup.rx;
+        document.getElementById('chk-ry').checked = !!sup.ry;
+        document.getElementById('chk-rm').checked = !!sup.rm;
+        document.getElementById('spring-kx').value = spring.kx || 0;
+        document.getElementById('spring-ky').value = spring.ky || 0;
+        document.getElementById('spring-km').value = spring.km || 0;
+
+        this.openModal('modal-support');
+    }
+
+    saveSupportAssignment() {
+        const type = document.getElementById('support-type-select').value;
+        const rx = document.getElementById('chk-rx').checked;
+        const ry = document.getElementById('chk-ry').checked;
+        const rm = document.getElementById('chk-rm').checked;
+        const kx = parseFloat(document.getElementById('spring-kx').value) || 0;
+        const ky = parseFloat(document.getElementById('spring-ky').value) || 0;
+        const km = parseFloat(document.getElementById('spring-km').value) || 0;
+
+        this.state.selectedNodes.forEach(nodeId => {
+            const node = this.state.model.nodes.find(n => n.id === nodeId);
+            if (!node) return;
+            node.support = type === 'free' ? null : (type === 'custom' ? { type: 'custom', rx, ry, rm } : { type });
+            node.spring = (kx > 0 || ky > 0 || km > 0) ? { kx, ky, km } : null;
+        });
+
+        this.state.pushHistory();
+        this.state.notify('supportsAssigned');
+        this.closeModal('modal-support');
+    }
+
+    openMemberPropertiesModal() {
+        if (this.state.selectedMembers.size === 0) return alert('Seleccione al menos una barra.');
+        const mem = this.state.model.members.find(m => m.id === Array.from(this.state.selectedMembers)[0]);
+
+        const matSelect = document.getElementById('member-mat-select');
+        const secSelect = document.getElementById('member-sec-select');
+        matSelect.innerHTML = '';
+        secSelect.innerHTML = '';
+
+        this.state.model.materials.forEach(mat => {
+            const opt = document.createElement('option');
+            opt.value = mat.id; opt.textContent = `${mat.name} (E=${mat.E} GPa)`;
+            if (mem && mem.materialId === mat.id) opt.selected = true;
+            matSelect.appendChild(opt);
+        });
+
+        this.state.model.sections.forEach(sec => {
+            const opt = document.createElement('option');
+            opt.value = sec.id; opt.textContent = `${sec.name} (A=${(sec.A * 10000).toFixed(1)} cm²)`;
+            if (mem && mem.sectionId === sec.id) opt.selected = true;
+            secSelect.appendChild(opt);
+        });
+
+        if (mem) document.getElementById('member-release-select').value = mem.releases || 'none';
+        this.openModal('modal-member-props');
+    }
+
+    saveMemberProperties() {
+        const materialId = document.getElementById('member-mat-select').value;
+        const sectionId = document.getElementById('member-sec-select').value;
+        const releases = document.getElementById('member-release-select').value;
+
+        this.state.selectedMembers.forEach(memId => {
+            const mem = this.state.model.members.find(m => m.id === memId);
+            if (mem) {
+                mem.materialId = materialId;
+                mem.sectionId = sectionId;
+                mem.releases = releases;
+            }
+        });
+
+        this.state.pushHistory();
+        this.state.notify('memberUpdated');
+        this.closeModal('modal-member-props');
+    }
+
+    openNodeLoadModal() {
+        if (this.state.selectedNodes.size === 0) return alert('Seleccione al menos un nudo.');
+        const nodeId = Array.from(this.state.selectedNodes)[0];
+        const node = this.state.model.nodes.find(n => n.id === nodeId);
+        const load = node?.load || { fx: 0, fy: 0, m: 0 };
+        document.getElementById('load-fx').value = load.fx || 0;
+        document.getElementById('load-fy').value = load.fy || 0;
+        document.getElementById('load-m').value = load.m || 0;
+        this.openModal('modal-node-load');
+    }
+
+    saveNodeLoadAssignment() {
+        const fx = parseFloat(document.getElementById('load-fx').value) || 0;
+        const fy = parseFloat(document.getElementById('load-fy').value) || 0;
+        const m = parseFloat(document.getElementById('load-m').value) || 0;
+
+        this.state.selectedNodes.forEach(nodeId => {
+            const node = this.state.model.nodes.find(n => n.id === nodeId);
+            if (!node) return;
+            node.load = (Math.abs(fx) > 1e-6 || Math.abs(fy) > 1e-6 || Math.abs(m) > 1e-6) ? { fx, fy, m } : null;
+        });
+
+        this.state.pushHistory();
+        this.state.notify('loadsAssigned');
+        this.closeModal('modal-node-load');
+    }
+
+    openMemberLoadModal() {
+        if (this.state.selectedMembers.size === 0) return alert('Seleccione al menos una barra.');
+        const memId = Array.from(this.state.selectedMembers)[0];
+        const mem = this.state.model.members.find(m => m.id === memId);
+        const load = mem?.load || { q1: 20, q2: 20, coordSystem: 'global', direction: 'Y', enabled: true };
+        document.getElementById('load-q1').value = load.q1 || 0;
+        document.getElementById('load-q2').value = load.q2 !== undefined ? load.q2 : (load.q1 || 0);
+        document.getElementById('load-coord-system').value = load.coordSystem || 'global';
+        document.getElementById('load-direction').value = load.direction || 'Y';
+        document.getElementById('load-enabled').checked = load.enabled !== false;
+        this.openModal('modal-member-load');
+    }
+
+    saveMemberLoadAssignment() {
+        const q1 = parseFloat(document.getElementById('load-q1').value) || 0;
+        const q2 = parseFloat(document.getElementById('load-q2').value) || 0;
+        const coordSystem = document.getElementById('load-coord-system').value;
+        const direction = document.getElementById('load-direction').value;
+        const enabled = document.getElementById('load-enabled').checked;
+
+        if (this.state.selectedMembers.size === 0) {
+            return alert('Seleccione al menos una barra en el lienzo antes de asignar la carga.');
+        }
+
+        this.state.selectedMembers.forEach(memId => {
+            const mem = this.state.model.members.find(m => m.id === memId);
+            if (mem) {
+                mem.load = (Math.abs(q1) > 1e-6 || Math.abs(q2) > 1e-6) ? { q1, q2, coordSystem, direction, enabled } : null;
+            }
+        });
+
+        this.state.pushHistory();
+        this.state.notify('loadsAssigned');
+        this.closeModal('modal-member-load');
+    }
+}
+
+// ============================================================================
+// 7. VISUALIZADOR DE MATRICES (MatrixViewer)
+// ============================================================================
+class MatrixViewer {
+    constructor(state) {
+        this.state = state;
+        this.activeTab = 'k_global';
+        this.init();
+    }
+
+    init() {
+        document.querySelectorAll('.matrix-tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.matrix-tab-btn').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                this.activeTab = btn.dataset.tab;
+                this.render();
+            });
+        });
+
+        document.getElementById('btn-copy-matrix')?.addEventListener('click', () => this.copyToClipboard());
+        document.getElementById('btn-export-csv')?.addEventListener('click', () => this.exportCsv());
+    }
+
+    open() {
+        if (!this.state.solution) return alert('Primero ejecute el cálculo estructural.');
+        document.getElementById('modal-matrix-viewer')?.classList.add('active');
+        this.render();
+    }
+
+    render() {
+        const container = document.getElementById('matrix-content-area');
+        const infoBar = document.getElementById('matrix-info-bar');
+        if (!container || !this.state.solution) return;
+
+        const sol = this.state.solution;
+        const nodes = this.state.model.nodes;
+        const totalDof = sol.totalDof;
+
+        const dofLabels = [];
+        nodes.forEach(n => {
+            dofLabels.push(`u(${n.id})`);
+            dofLabels.push(`v(${n.id})`);
+            dofLabels.push(`θ(${n.id})`);
+        });
+
+        let html = '';
+        if (this.activeTab === 'k_global') {
+            infoBar.textContent = `Matriz de Rigidez Global [K_global] - ${totalDof} x ${totalDof} (kN/m, kN, kN·m)`;
+            html += `<table class="matrix-table"><thead><tr><th>GDL</th>`;
+            for (let j = 0; j < totalDof; j++) html += `<th>${dofLabels[j]}</th>`;
+            html += `</tr></thead><tbody>`;
+            for (let i = 0; i < totalDof; i++) {
+                html += `<tr><th>${dofLabels[i]}</th>`;
+                for (let j = 0; j < totalDof; j++) {
+                    const val = sol.K_global[i][j];
+                    const isZero = Math.abs(val) < 1e-6;
+                    const cls = i === j ? 'matrix-diag' : (isZero ? 'matrix-zero' : 'matrix-val');
+                    const fmt = isZero ? '0.00' : (Math.abs(val) >= 1e4 ? val.toExponential(2) : val.toFixed(1));
+                    html += `<td class="${cls}">${fmt}</td>`;
+                }
+                html += `</tr>`;
+            }
+            html += `</tbody></table>`;
+
+        } else if (this.activeTab === 'k_reducida') {
+            const free = sol.freeDofs;
+            infoBar.textContent = `Matriz de Rigidez Reducida [K_reducida] - ${free.length} x ${free.length} GDL Libres`;
+            html += `<table class="matrix-table"><thead><tr><th>GDL</th>`;
+            free.forEach(f => html += `<th>${dofLabels[f]}</th>`);
+            html += `</tr></thead><tbody>`;
+            for (let i = 0; i < free.length; i++) {
+                html += `<tr><th>${dofLabels[free[i]]}</th>`;
+                for (let j = 0; j < free.length; j++) {
+                    const val = sol.K_ff[i][j];
+                    const isZero = Math.abs(val) < 1e-6;
+                    const cls = i === j ? 'matrix-diag' : (isZero ? 'matrix-zero' : 'matrix-val');
+                    const fmt = isZero ? '0.00' : (Math.abs(val) >= 1e4 ? val.toExponential(2) : val.toFixed(1));
+                    html += `<td class="${cls}">${fmt}</td>`;
+                }
+                html += `</tr>`;
+            }
+            html += `</tbody></table>`;
+
+        } else if (this.activeTab === 'vector_p') {
+            infoBar.textContent = `Vectores de Cargas Nodales {P_ext}, {P_eq} y Efectivo {P_eff}`;
+            html += `<table class="matrix-table"><thead><tr><th>GDL</th><th>P_ext (kN, kNm)</th><th>P_eq</th><th>P_eff</th></tr></thead><tbody>`;
+            for (let i = 0; i < totalDof; i++) {
+                const pe = sol.P_ext[i], pq = sol.P_eq[i], pf = pe - pq;
+                html += `<tr><th>${dofLabels[i]}</th><td>${pe.toFixed(2)}</td><td>${pq.toFixed(2)}</td><td class="matrix-diag">${pf.toFixed(2)}</td></tr>`;
+            }
+            html += `</tbody></table>`;
+
+        } else if (this.activeTab === 'vector_d') {
+            infoBar.textContent = `Vector de Desplazamientos Globales {d}`;
+            html += `<table class="matrix-table"><thead><tr><th>GDL</th><th>Valor SI</th><th>Práctico (mm / mrad)</th></tr></thead><tbody>`;
+            for (let i = 0; i < totalDof; i++) {
+                const val = sol.d_global[i];
+                const unit = (i % 3 === 2) ? 'mrad' : 'mm';
+                html += `<tr><th>${dofLabels[i]}</th><td>${val.toExponential(4)}</td><td class="matrix-val">${(val * 1000).toFixed(3)} ${unit}</td></tr>`;
+            }
+            html += `</tbody></table>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    copyToClipboard() {
+        if (!this.state.solution) return;
+        const text = document.getElementById('matrix-content-area')?.innerText || '';
+        navigator.clipboard.writeText(text).then(() => alert('Matriz copiada al portapapeles.'));
+    }
+
+    exportCsv() {
+        if (!this.state.solution) return;
+        const rows = [];
+        document.querySelectorAll('#matrix-content-area tr').forEach(tr => {
+            const row = [];
+            tr.querySelectorAll('th, td').forEach(cell => row.push(`"${cell.innerText.trim()}"`));
+            rows.push(row.join(','));
+        });
+        const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `${this.activeTab}_portico_2d.csv`;
+        link.click();
+    }
+}
+
+// ============================================================================
+// 8. GENERADOR DE REPORTES PDF (PDFReportGenerator)
+// ============================================================================
+class PDFReportGenerator {
+    constructor(state, renderer) {
+        this.state = state;
+        this.renderer = renderer;
+    }
+
+    capture(mode) {
+        const prev = this.state.ui.viewMode;
+        this.state.ui.viewMode = mode;
+        this.renderer.render();
+        const img = this.renderer.canvas.toDataURL('image/png');
+        this.state.ui.viewMode = prev;
+        this.renderer.render();
+        return img;
+    }
+
+    generate() {
+        if (!this.state.solution) return alert('Ejecute el análisis estructural antes de exportar el PDF.');
+        const sol = this.state.solution;
+        const model = this.state.model;
+
+        const imgM = this.capture('model');
+        const imgD = this.capture('deformed');
+        const imgA = this.capture('axial');
+        const imgV = this.capture('shear');
+        const imgF = this.capture('moment');
+
+        const win = window.open('', '_blank');
+        if (!win) return alert('Por favor habilite los popups en el navegador.');
+
+        win.document.write(`
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Informe Técnico - ${model.name}</title>
+    <style>
+        @page { size: A4 portrait; margin: 12mm; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #1e293b; font-size: 10pt; line-height: 1.4; padding: 20px; }
+        h1 { font-size: 18pt; color: #0284c7; margin: 0; }
+        h2 { font-size: 12pt; color: #0f172a; border-left: 4px solid #0284c7; padding-left: 8px; margin-top: 20px; text-transform: uppercase; }
+        .meta { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; font-size: 9.5pt; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 9pt; }
+        th { background: #f1f5f9; padding: 6px; border: 1px solid #cbd5e1; text-align: center; }
+        td { padding: 5px; border: 1px solid #e2e8f0; text-align: center; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; page-break-inside: avoid; }
+        .card { border: 1px solid #cbd5e1; border-radius: 4px; padding: 6px; text-align: center; }
+        .card img { max-width: 100%; max-height: 220px; object-fit: contain; }
+        .btn-p { position: fixed; bottom: 20px; right: 20px; background: #0284c7; color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        @media print { .btn-p { display: none; } body { padding: 0; } }
+    </style>
+</head>
+<body>
+    <div class="btn-p" onclick="window.print()">🖨️ Imprimir / Guardar en PDF</div>
+    <h1>INFORME DE CÁLCULO ESTRUCTURAL</h1>
+    <p style="color: #64748b; margin: 2px 0;">Analizador Interactivo de Pórticos Planos 2D • Método de Rigidez Directa</p>
+    <div class="meta">
+        <div><strong>Proyecto:</strong> ${model.name}</div>
+        <div><strong>Nudos:</strong> ${model.nodes.length} | <strong>Barras:</strong> ${model.members.length}</div>
+        <div><strong>GDL Libres:</strong> ${sol.freeDofs.length}</div>
+        <div><strong>Equilibrio:</strong> <span style="color:${sol.equilibrium.isBalanced ? '#15803d' : '#b91c1c'}; font-weight:bold;">${sol.equilibrium.isBalanced ? '✓ CONFORME (< 0.001 kN)' : '⚠️ DESEQUILIBRADO'}</span></div>
+        <div><strong>Fecha:</strong> ${new Date().toLocaleDateString()}</div>
+    </div>
+
+    <h2>1. Biblioteca de Materiales y Secciones</h2>
+    <table>
+        <thead><tr><th>Material</th><th>E (GPa)</th><th>ν</th><th>G (GPa)</th><th>Fy (MPa)</th></tr></thead>
+        <tbody>
+            ${model.materials.map(m => `<tr><td><strong>${m.name}</strong></td><td>${m.E}</td><td>${m.nu}</td><td>${m.G}</td><td>${m.Fy}</td></tr>`).join('')}
+        </tbody>
+    </table>
+
+    <h2>2. Visualización Gráfica y Solicitaciones</h2>
+    <div class="grid-2">
+        <div class="card"><strong>Modelo Geométrico</strong><br><img src="${imgM}"></div>
+        <div class="card"><strong>Deformada Elástica</strong><br><img src="${imgD}"></div>
+        <div class="card"><strong>Axiales (N) [kN]</strong><br><img src="${imgA}"></div>
+        <div class="card"><strong>Cortantes (V) [kN]</strong><br><img src="${imgV}"></div>
+    </div>
+    <div class="card" style="margin-top: 10px;"><strong>Momentos Flectores (M) [kN·m]</strong><br><img src="${imgF}"></div>
+
+    <h2>3. Reacciones en los Apoyos</h2>
+    <table>
+        <thead><tr><th>Nudo</th><th>Rx (kN)</th><th>Ry (kN)</th><th>Rm (kN·m)</th></tr></thead>
+        <tbody>
+            ${model.nodes.filter(n => sol.reactionsByNode[n.id]?.isSupported).map(n => {
+                const r = sol.reactionsByNode[n.id];
+                return `<tr><td><strong>${n.id}</strong></td><td><strong>${r.rx.toFixed(2)}</strong></td><td><strong>${r.ry.toFixed(2)}</strong></td><td><strong>${r.rm.toFixed(2)}</strong></td></tr>`;
+            }).join('')}
+        </tbody>
+    </table>
+
+    <h2>4. Esfuerzos Internos Máximos y Comprobación</h2>
+    <table>
+        <thead><tr><th>Barra</th><th>N1 (kN)</th><th>V1 (kN)</th><th>M1 (kN·m)</th><th>N2 (kN)</th><th>V2 (kN)</th><th>M2 (kN·m)</th><th>σ max (MPa)</th><th>Fy</th><th>Ratio (σ/Fy)</th></tr></thead>
+        <tbody>
+            ${model.members.map(m => {
+                const ef = sol.memberResults[m.id].endForces;
+                const st = sol.memberResults[m.id].stresses;
+                return `<tr><td><strong>${m.id}</strong></td><td>${ef.N1.toFixed(1)}</td><td>${ef.V1.toFixed(1)}</td><td>${ef.M1.toFixed(1)}</td><td>${ef.N2.toFixed(1)}</td><td>${ef.V2.toFixed(1)}</td><td>${ef.M2.toFixed(1)}</td><td>${st.sigma_total.toFixed(1)}</td><td>${st.Fy}</td><td style="color:${st.isCritical ? '#dc2626' : '#16a34a'}; font-weight:bold;">${st.ratio.toFixed(2)} ${st.isCritical ? '⚠️' : '✓'}</td></tr>`;
+            }).join('')}
+        </tbody>
+    </table>
+</body>
+</html>
+        `);
+        win.document.close();
+    }
+}
+
+// ============================================================================
+// 9. INICIALIZACIÓN Y VINCULACIÓN GENERAL (Main)
+// ============================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    const state = new AppState();
+    const canvas = document.getElementById('main-canvas');
+    const renderer = new CanvasRenderer(canvas, state);
+    const dialogs = new DialogManager(state);
+    const matrixViewer = new MatrixViewer(state);
+    const pdfGenerator = new PDFReportGenerator(state, renderer);
+
+    function solve() {
+        try {
+            if (state.model.nodes.length < 2 || state.model.members.length === 0) return alert('El modelo necesita al menos 2 nudos y 1 barra.');
+            state.solution = StructuralSolver.solve(state.model);
+            state.diagrams = DiagramEngine.computeDiagrams(state.solution, 50);
+            renderer.render();
+            updateSidebars();
+        } catch (err) {
+            alert(`Error de cálculo: ${err.message}`);
+            console.error(err);
+        }
+    }
+
+    function updateSidebars() {
+        const stats = document.getElementById('sidebar-model-stats');
+        if (stats) {
+            stats.innerHTML = `
+                <div class="prop-row"><span class="prop-label">Nudos:</span><span class="prop-val">${state.model.nodes.length}</span></div>
+                <div class="prop-row"><span class="prop-label">Barras:</span><span class="prop-val">${state.model.members.length}</span></div>
+                <div class="prop-row"><span class="prop-label">Materiales:</span><span class="prop-val">${state.model.materials.length}</span></div>
+            `;
+        }
+
+        const selInfo = document.getElementById('sidebar-selection-info');
+        if (selInfo) {
+            if (state.selectedNodes.size === 1) {
+                const n = state.model.nodes.find(item => item.id === Array.from(state.selectedNodes)[0]);
+                selInfo.innerHTML = `
+                    <div class="prop-row"><span class="prop-label">Nudo:</span><span class="prop-val">${n.id}</span></div>
+                    <div class="prop-row"><span class="prop-label">Coord:</span><span class="prop-val">(${n.x}, ${n.y}) m</span></div>
+                    <div class="prop-row"><span class="prop-label">Apoyo:</span><span class="prop-val">${n.support?.type || 'Libre'}</span></div>
+                `;
+            } else if (state.selectedMembers.size === 1) {
+                const m = state.model.members.find(item => item.id === Array.from(state.selectedMembers)[0]);
+                selInfo.innerHTML = `
+                    <div class="prop-row"><span class="prop-label">Barra:</span><span class="prop-val">${m.id}</span></div>
+                    <div class="prop-row"><span class="prop-label">Nudos:</span><span class="prop-val">${m.node1Id} ➜ ${m.node2Id}</span></div>
+                    <div class="prop-row"><span class="prop-label">Rótulas:</span><span class="prop-val">${m.releases || 'none'}</span></div>
+                `;
+            } else {
+                selInfo.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 6px 0;">Seleccione un nudo o barra.</div>`;
+            }
+        }
+
+        const eqBadge = document.getElementById('equilibrium-badge');
+        const eqDetails = document.getElementById('equilibrium-details');
+        const rTable = document.getElementById('reactions-table-body');
+        const dTable = document.getElementById('displacements-table-body');
+
+        if (state.solution) {
+            const eq = state.solution.equilibrium;
+            if (eqBadge) {
+                eqBadge.className = `badge-status ${eq.isBalanced ? 'badge-ok' : 'badge-error'}`;
+                eqBadge.textContent = eq.isBalanced ? '✓ EQUILIBRADO' : '⚠️ DESEQUILIBRADO';
+            }
+            if (eqDetails) {
+                eqDetails.innerHTML = `
+                    <div class="prop-row"><span class="prop-label">Residuo Fx:</span><span class="prop-val">${eq.errorFx.toFixed(4)} kN</span></div>
+                    <div class="prop-row"><span class="prop-label">Residuo Fy:</span><span class="prop-val">${eq.errorFy.toFixed(4)} kN</span></div>
+                    <div class="prop-row"><span class="prop-label">Residuo M:</span><span class="prop-val">${eq.errorM.toFixed(4)} kNm</span></div>
+                `;
+            }
+            if (rTable) {
+                rTable.innerHTML = '';
+                state.model.nodes.forEach(n => {
+                    const r = state.solution.reactionsByNode[n.id];
+                    if (r && r.isSupported) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td><strong>${n.id}</strong></td><td>${r.rx.toFixed(2)}</td><td>${r.ry.toFixed(2)}</td><td>${r.rm.toFixed(2)}</td>`;
+                        rTable.appendChild(tr);
+                    }
+                });
+            }
+            if (dTable) {
+                dTable.innerHTML = '';
+                state.model.nodes.forEach(n => {
+                    const d = state.solution.displacementsByNode[n.id];
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td><strong>${n.id}</strong></td><td>${d.ux_mm.toFixed(3)}</td><td>${d.uy_mm.toFixed(3)}</td><td>${d.theta_mrad.toFixed(3)}</td>`;
+                    dTable.appendChild(tr);
+                });
+            }
+        }
+    }
+
+    // Botones de herramientas
+    document.querySelectorAll('[data-tool]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.ui.activeTool = btn.dataset.tool;
+            if (state.ui.activeTool === 'support') dialogs.openSupportModal();
+            else if (state.ui.activeTool === 'materials') dialogs.openMaterialsModal();
+            else if (state.ui.activeTool === 'properties') dialogs.openMemberPropertiesModal();
+            renderer.render();
+        });
+    });
+
+    // Botones de vista
+    document.querySelectorAll('[data-view]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            state.ui.viewMode = btn.dataset.view;
+            if (state.ui.viewMode !== 'model' && !state.solution) solve();
+            renderer.render();
+        });
+    });
+
+    document.getElementById('btn-solve')?.addEventListener('click', solve);
+    document.getElementById('btn-matrix-viewer')?.addEventListener('click', () => {
+        if (!state.solution) solve();
+        matrixViewer.open();
+    });
+    document.getElementById('btn-export-pdf')?.addEventListener('click', () => {
+        if (!state.solution) solve();
+        pdfGenerator.generate();
+    });
+    document.getElementById('btn-new-project')?.addEventListener('click', () => {
+        if (confirm('¿Desea crear un nuevo proyecto y limpiar el lienzo?')) {
+            state.newProject();
+            renderer.fitToView();
+        }
+    });
+
+    document.getElementById('select-example')?.addEventListener('change', (e) => {
+        if (e.target.value) {
+            state.loadExample(e.target.value);
+            solve();
+            renderer.fitToView();
+            e.target.value = '';
+        }
+    });
+
+    document.getElementById('btn-toggle-theme')?.addEventListener('click', () => {
+        const next = state.ui.theme === 'dark' ? 'light' : 'dark';
+        state.ui.theme = next;
+        document.body.setAttribute('data-theme', next);
+        renderer.render();
+    });
+
+    document.getElementById('btn-zoom-in')?.addEventListener('click', () => { renderer.scale *= 1.2; renderer.render(); });
+    document.getElementById('btn-zoom-out')?.addEventListener('click', () => { renderer.scale /= 1.2; renderer.render(); });
+    document.getElementById('btn-zoom-fit')?.addEventListener('click', () => renderer.fitToView());
+
+    document.getElementById('btn-save-support')?.addEventListener('click', () => dialogs.saveSupportAssignment());
+    document.getElementById('btn-save-node-load')?.addEventListener('click', () => dialogs.saveNodeLoadAssignment());
+    document.getElementById('btn-save-member-load')?.addEventListener('click', () => dialogs.saveMemberLoadAssignment());
+    document.getElementById('btn-save-member-props')?.addEventListener('click', () => dialogs.saveMemberProperties());
+    document.getElementById('btn-add-custom-material')?.addEventListener('click', () => dialogs.addCustomMaterial());
+    document.getElementById('btn-sidebar-props')?.addEventListener('click', () => {
+        if (state.selectedMembers.size > 0) dialogs.openMemberPropertiesModal();
+        else if (state.selectedNodes.size > 0) dialogs.openSupportModal();
+    });
+
+    // Hotkeys CAD
+    window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        const ctrl = e.ctrlKey || e.metaKey;
+        if (ctrl && !e.shiftKey && e.key.toLowerCase() === 'z') { e.preventDefault(); state.undo(); renderer.render(); }
+        else if ((ctrl && e.key.toLowerCase() === 'y') || (ctrl && e.shiftKey && e.key.toLowerCase() === 'z')) { e.preventDefault(); state.redo(); renderer.render(); }
+        else if (ctrl && e.key.toLowerCase() === 'c') { e.preventDefault(); state.copy(); }
+        else if (ctrl && e.key.toLowerCase() === 'v') { e.preventDefault(); state.paste(); renderer.render(); }
+        else if (ctrl && e.key.toLowerCase() === 'x') { e.preventDefault(); state.cut(); renderer.render(); }
+        else if (ctrl && e.key.toLowerCase() === 'n') { e.preventDefault(); if (confirm('¿Nuevo proyecto?')) { state.newProject(); renderer.fitToView(); } }
+        else if (ctrl && e.key.toLowerCase() === 'p') { e.preventDefault(); if (!state.solution) solve(); pdfGenerator.generate(); }
+        else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); state.deleteSelection(); renderer.render(); }
+        else if (e.key === 'Escape') {
+            renderer.memberStartNode = null;
+            state.selectedNodes.clear();
+            state.selectedMembers.clear();
+            state.ui.activeTool = 'select';
+            document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('active', b.dataset.tool === 'select'));
+            renderer.render();
+        }
+    });
+
+    state.subscribe(() => {
+        renderer.render();
+        updateSidebars();
+    });
+
+    // Cargar modelo inicial
+    state.loadExample('continuous_beam');
+    setTimeout(() => {
+        solve();
+        renderer.fitToView();
+    }, 80);
+});
+
+</script>
+
+    <script>
+        // Enlace para el botón de Cargas de la barra superior
+        document.getElementById('btn-open-load-dialog')?.addEventListener('click', () => {
+            const selNode = document.getElementById('sidebar-selection-info')?.innerText.includes('Nudo');
+            if (selNode) {
+                document.getElementById('modal-node-load')?.classList.add('active');
+            } else {
+                document.getElementById('modal-member-load')?.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
+
